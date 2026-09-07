@@ -70,6 +70,16 @@ export type Intake = {
   notes: string | null;
   status: string;
   created_at: string;
+  household_type?: string | null;
+  adults?: number | null;
+  children?: number | null;
+  children_ages?: string | null;
+  pregnant?: boolean | null;
+  veteran?: boolean | null;
+  in_danger?: boolean | null;
+  registrant_name?: string | null;
+  registrant_relationship?: string | null;
+  homeless_duration?: string | null;
 };
 
 export function pickupCode() {

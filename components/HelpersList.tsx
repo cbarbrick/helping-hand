@@ -42,7 +42,6 @@ export default function HelpersList() {
   return (
     <main className="container">
       <h1>{t("helpersTitle")}</h1>
-      <p className="muted">{t("helpersIntro")}</p>
       <select value={area} onChange={(e) => setArea(e.target.value)}>
         <option value="">{t("allAreas")}</option>
         {AREAS.map((x) => (

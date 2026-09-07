@@ -56,7 +56,6 @@ export default function JobsPage() {
           + {t("postJob")}
         </Link>
       </div>
-      <p className="muted">{t("jobsIntro")}</p>
       <select value={area} onChange={(e) => setArea(e.target.value)}>
         <option value="">{t("allAreas")}</option>
         {AREAS.map((x) => (

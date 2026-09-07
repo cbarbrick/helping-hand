@@ -96,6 +96,11 @@ export default function AccountPage() {
             {t("helperDash")}
           </Link>
         )}
+        {(pRole === "helper" || pRole === "driver" || pRole === "admin") && (
+          <Link className="btn secondary" href="/navigator">
+            🪪 {t("navTitle")}
+          </Link>
+        )}
         {(pRole === "driver" || pRole === "admin") && (
           <Link className="btn secondary" href="/driver">
             {t("driverDash")}

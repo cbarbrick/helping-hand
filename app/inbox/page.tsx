@@ -12,7 +12,6 @@ export default function InboxPage() {
   return (
     <main className="container">
       <h1>{t("inbox")}</h1>
-      <p className="muted">{t("inboxIntro")}</p>
       {user ? <Inbox userId={user.id} /> : <PinLogin />}
     </main>
   );

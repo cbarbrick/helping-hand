@@ -12,7 +12,14 @@ export function ResourceCard({ r }: { r: Resource }) {
       <div className="name">{r.name}</div>
       {desc && <p className="small" style={{ margin: "4px 0 0" }}>{desc}</p>}
       {r.hours && <div className="hint">{t("hours")}: {r.hours}</div>}
-      {r.address && <div className="hint">{r.address}</div>}
+      {r.address && <div className="hint">📍 {r.address}</div>}
+      {r.website && (
+        <div className="hint">
+          <a href={r.website} target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>
+            {r.website.replace(/^https?:\/\//, "")}
+          </a>
+        </div>
+      )}
       {r.phone && (
         <a className="call" href={`tel:${tel}`}>
           📞 {t("call")} {r.phone}

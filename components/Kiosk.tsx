@@ -8,9 +8,11 @@ import { supabase, pickupCode } from "@/lib/supabase";
 import LangSwitch from "./LangSwitch";
 import PinLogin from "./PinLogin";
 import Inbox from "./Inbox";
+import DocStatus from "./DocStatus";
 import { useSession } from "@/lib/useSession";
+import Logo from "./Logo";
 
-type Screen = "home" | "order" | "code" | "status" | "inbox";
+type Screen = "home" | "order" | "code" | "status" | "inbox" | "docs";
 type Status = { pickup_code: string; status: string; requested_at: string; target_minutes: number };
 
 const STATUS_ORDER = ["requested", "packing", "en_route", "delivered"];
@@ -93,7 +95,7 @@ export default function Kiosk() {
     <main className="container kiosk">
       <div className="row between" style={{ marginBottom: 10 }}>
         <div className="row" style={{ gap: 8 }}>
-          <span style={{ fontSize: 30 }}>🤝</span>
+          <span className="logo-box"><Logo size={30} /></span>
           <strong>{t("appName")}</strong>
           <span className="tag gray">{kiosk?.name ?? code}</span>
         </div>
@@ -115,6 +117,16 @@ export default function Kiosk() {
               <div className="title">{t("kioskHelp")}</div>
               <div className="sub">{t("helpingMyselfSub")}</div>
             </Link>
+            <Link href={`/resources?lang=${lang}`}>
+              <div className="icon">🧭</div>
+              <div className="title">{t("hubTitle")}</div>
+              <div className="sub">{t("hubSub")}</div>
+            </Link>
+            <button onClick={() => setScreen("docs")}>
+              <div className="icon">🪪</div>
+              <div className="title">{t("docsHome")}</div>
+              <div className="sub">{t("docsHomeSub")}</div>
+            </button>
             <button onClick={() => setScreen("inbox")}>
               <div className="icon">📬</div>
               <div className="title">{t("kioskInbox")}</div>
@@ -229,6 +241,43 @@ export default function Kiosk() {
           ) : (
             <>
               <p className="muted">{t("signInIntro")}</p>
+              <PinLogin compact />
+            </>
+          )}
+          <button className="btn ghost" style={{ marginTop: 24 }} onClick={() => setScreen("home")}>
+            ← {t("back")}
+          </button>
+        </>
+      )}
+
+      {screen === "docs" && (
+        <>
+          <div className="row between">
+            <h1>{t("docsMine")}</h1>
+            {user && (
+              <button
+                className="btn secondary"
+                onClick={async () => {
+                  await supabase().auth.signOut();
+                  setScreen("home");
+                }}
+              >
+                {t("doneSignOut")}
+              </button>
+            )}
+          </div>
+          {user ? (
+            <>
+              <p className="muted">{t("kioskInboxWarn")}</p>
+              <DocStatus userId={user.id} compact />
+              <Link className="btn block lg" style={{ marginTop: 16 }} href={`/documents?kiosk=${code}&lang=${lang}`}>
+                🪪 {t("docsStart")}
+              </Link>
+            </>
+          ) : (
+            <>
+              <p className="muted">{t("docsIntro")}</p>
+              <p className="small">{t("signInIntro")}</p>
               <PinLogin compact />
             </>
           )}

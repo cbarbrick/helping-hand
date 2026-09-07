@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLang } from "@/lib/LangContext";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
+import RidesList from "@/components/RidesList";
 
 type Req = {
   id: string;
@@ -104,6 +105,7 @@ export default function DriverPage() {
           </div>
         );
       })}
+      <RidesList userId={user.id} />
     </main>
   );
 }

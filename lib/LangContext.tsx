@@ -19,7 +19,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
       const url = new URLSearchParams(window.location.search).get("lang");
       const saved = window.localStorage.getItem("hh_lang");
       const pick = (url || saved) as Lang | null;
-      if (pick && ["en", "es", "ht"].includes(pick)) setLangState(pick);
+      if (pick) setLangState(pick);
     } catch {}
   }, []);
 

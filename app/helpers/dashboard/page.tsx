@@ -87,6 +87,15 @@ export default function HelperDashboard() {
                   {t(`need_${n}`)}
                 </span>
               ))}
+              {i.household_type === "family" && (
+                <span className="tag warm">
+                  👨‍👩‍👧 {i.adults ?? 1} adults · {i.children ?? 0} children{i.children_ages ? ` (${i.children_ages})` : ""}
+                </span>
+              )}
+              {i.pregnant && <span className="tag warm">pregnant</span>}
+              {i.veteran && <span className="tag">veteran</span>}
+              {i.in_danger && <span className="tag warm">safety concern</span>}
+              {i.registrant_name && <span className="tag gray">via {i.registrant_name} ({i.registrant_relationship})</span>}
               {i.has_place_to_sleep === false && <span className="tag warm">no place to sleep</span>}
               {i.has_id === false && <span className="tag gray">no ID</span>}
               {i.has_phone === false && <span className="tag gray">no phone</span>}
