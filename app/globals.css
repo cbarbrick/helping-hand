@@ -328,6 +328,12 @@ header.top .menubtn {
 @media (hover: hover) {
   .bigchoice a:hover, .bigchoice button:hover { border-color: var(--brand); transform: translateY(-1px); }
 }
+/* Single-line variant: icon beside the text instead of above it. */
+.bigchoice.inline { margin-top: 0; }
+.bigchoice.inline a, .bigchoice.inline button { display: flex; align-items: center; gap: var(--s4); padding: var(--s4) var(--s5); }
+.bigchoice.inline .icon { font-size: 30px; margin: 0; flex: none; }
+.bigchoice.inline .title { font-size: 18px; }
+.bigchoice.inline .sub { font-size: 14px; }
 
 /* ---------- Quick links ---------- */
 

@@ -33,6 +33,7 @@ export default function Kiosk() {
   const [status, setStatus] = useState<Status | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [orderErr, setOrderErr] = useState(false);
   const { user } = useSession();
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export default function Kiosk() {
 
   async function order() {
     setBusy(true);
+    setOrderErr(false);
     const pc = pickupCode();
     const { data: u } = await supabase().auth.getUser();
     const items: Record<string, unknown> = {};
@@ -71,7 +73,8 @@ export default function Kiosk() {
       pickup_code: pc,
       items,
     });
-    if (!error) {
+    if (error) setOrderErr(true);
+    else {
       setPickup(pc);
       setScreen("code");
     }
@@ -186,12 +189,18 @@ export default function Kiosk() {
               </div>
             </div>
           )}
-          <div className="row between" style={{ marginTop: 24 }}>
+          {orderErr && (
+            <div className="errorbox" role="alert">
+              <strong>{t("errGeneric")}</strong>
+              <p className="small" style={{ margin: 0 }}>{t("errHelp")}</p>
+            </div>
+          )}
+          <div className="stepnav">
             <button className="btn ghost" onClick={() => setScreen("home")}>
               ← {t("back")}
             </button>
             <button className="btn lg accent" onClick={order} disabled={busy || (!food && !clothes && !hygiene)}>
-              {t("kioskPlace")} →
+              {busy ? t("saving") : `${t("kioskPlace")} →`}
             </button>
           </div>
         </>
@@ -211,9 +220,11 @@ export default function Kiosk() {
             ))}
           </div>
           {status?.status === "picked_up" && <p className="success">{t("status_picked_up")}</p>}
-          <button className="btn ghost" style={{ marginTop: 24 }} onClick={() => setScreen("home")}>
-            ← {t("back")}
-          </button>
+          <div className="stepnav">
+            <button className="btn ghost" onClick={() => setScreen("home")}>
+              ← {t("back")}
+            </button>
+          </div>
         </>
       )}
 
@@ -244,9 +255,11 @@ export default function Kiosk() {
               <PinLogin compact />
             </>
           )}
-          <button className="btn ghost" style={{ marginTop: 24 }} onClick={() => setScreen("home")}>
-            ← {t("back")}
-          </button>
+          <div className="stepnav">
+            <button className="btn ghost" onClick={() => setScreen("home")}>
+              ← {t("back")}
+            </button>
+          </div>
         </>
       )}
 
@@ -281,18 +294,30 @@ export default function Kiosk() {
               <PinLogin compact />
             </>
           )}
-          <button className="btn ghost" style={{ marginTop: 24 }} onClick={() => setScreen("home")}>
-            ← {t("back")}
-          </button>
+          <div className="stepnav">
+            <button className="btn ghost" onClick={() => setScreen("home")}>
+              ← {t("back")}
+            </button>
+          </div>
         </>
       )}
 
       {screen === "status" && (
         <>
           <h1>{t("enterCode")}</h1>
-          <input type="text" value={lookup} onChange={(e) => setLookup(e.target.value.toUpperCase())} maxLength={6} style={{ fontSize: 32, letterSpacing: ".2em", textAlign: "center" }} />
-          {notFound && <p className="error">{t("notFound")}</p>}
-          <div className="row between" style={{ marginTop: 20 }}>
+          <input
+            type="text"
+            aria-label={t("enterCode")}
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
+            value={lookup}
+            onChange={(e) => setLookup(e.target.value.toUpperCase())}
+            maxLength={6}
+            style={{ fontSize: 32, letterSpacing: ".2em", textAlign: "center" }}
+          />
+          {notFound && <p className="error" role="alert">{t("notFound")}</p>}
+          <div className="stepnav">
             <button className="btn ghost" onClick={() => setScreen("home")}>
               ← {t("back")}
             </button>
