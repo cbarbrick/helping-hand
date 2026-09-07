@@ -141,7 +141,8 @@ strong, b { font-weight: 700; }
   padding-left: max(var(--pad), env(safe-area-inset-left));
   padding-right: max(var(--pad), env(safe-area-inset-right));
 }
-.wide { max-width: 1040px; }
+/* Dashboards only. Reading-heavy screens stay at 720px. */
+.wide { max-width: 960px; }
 
 .row { display: flex; gap: var(--s3); flex-wrap: wrap; align-items: center; }
 .row.between { justify-content: space-between; }

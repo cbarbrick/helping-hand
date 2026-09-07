@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import Packet from "@/components/Packet";
+import { PageSkeleton } from "@/components/Skeleton";
 
 export default function PacketPage() {
   return (
-    <Suspense fallback={<main className="container" />}>
+    <Suspense fallback={<PageSkeleton cards={2} />}>
       <Packet />
     </Suspense>
   );

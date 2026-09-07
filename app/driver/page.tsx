@@ -6,6 +6,7 @@ import { useLang } from "@/lib/LangContext";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
 import RidesList from "@/components/RidesList";
+import { PageSkeleton, Skeleton } from "@/components/Skeleton";
 
 type Req = {
   id: string;
@@ -28,6 +29,7 @@ export default function DriverPage() {
   const { t } = useLang();
   const { user, loading } = useSession();
   const [reqs, setReqs] = useState<Req[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   async function load() {
     const { data } = await supabase()
@@ -36,6 +38,7 @@ export default function DriverPage() {
       .in("status", ["requested", "packing", "en_route", "delivered"])
       .order("requested_at");
     setReqs((data as unknown as Req[]) ?? []);
+    setLoaded(true);
   }
 
   useEffect(() => {
@@ -55,7 +58,7 @@ export default function DriverPage() {
     load();
   }
 
-  if (loading) return <main className="container" />;
+  if (loading) return <PageSkeleton cards={2} wide />;
   if (!user)
     return (
       <main className="container">
@@ -80,7 +83,8 @@ export default function DriverPage() {
   return (
     <main className="container wide">
       <h1>{t("deliveries")}</h1>
-      {reqs.length === 0 && <div className="card">{t("noOpen")}</div>}
+      {!loaded && <Skeleton cards={2} heading={false} />}
+      {loaded && reqs.length === 0 && <div className="card">{t("noOpen")}</div>}
       {reqs.map((r) => {
         const mins = Math.round((Date.now() - new Date(r.requested_at).getTime()) / 60000);
         const n = NEXT[r.status];

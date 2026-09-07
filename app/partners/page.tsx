@@ -61,8 +61,8 @@ export default function PartnersPage() {
       <main className="container">
         <h1>{t("partnerThanks")}</h1>
         <p>{t("partnerThanksBody")}</p>
-        <Link className="btn" href="/">
-          {t("back")}
+        <Link className="btn" href="/home">
+          {t("home")}
         </Link>
       </main>
     );
@@ -78,7 +78,7 @@ export default function PartnersPage() {
 
       <div className="card">
         <label className="field">{t("orgName")}</label>
-        <input type="text" value={f.org_name} onChange={(e) => set({ org_name: e.target.value })} />
+        <input type="text" autoComplete="organization" value={f.org_name} onChange={(e) => set({ org_name: e.target.value })} />
         <label className="field">{t("orgType")}</label>
         <div className="chips">
           {ORG_TYPES.map((x) => (
@@ -109,16 +109,21 @@ export default function PartnersPage() {
           <option>All of Miami-Dade</option>
         </select>
         <label className="field">{t("contactName")}</label>
-        <input type="text" value={f.contact_name} onChange={(e) => set({ contact_name: e.target.value })} />
+        <input type="text" autoComplete="name" value={f.contact_name} onChange={(e) => set({ contact_name: e.target.value })} />
         <label className="field">{t("contactEmail")}</label>
-        <input type="email" value={f.contact_email} onChange={(e) => set({ contact_email: e.target.value })} />
+        <input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" value={f.contact_email} onChange={(e) => set({ contact_email: e.target.value })} />
         <label className="field">{t("contactPhone")}</label>
-        <input type="tel" value={f.contact_phone} onChange={(e) => set({ contact_phone: e.target.value })} />
+        <input type="tel" inputMode="tel" autoComplete="tel" value={f.contact_phone} onChange={(e) => set({ contact_phone: e.target.value })} />
         <label className="field">{t("message")}</label>
         <textarea value={f.message} onChange={(e) => set({ message: e.target.value })} />
-        {err && <p className="error">{err}</p>}
+        {err && (
+          <div className="errorbox" role="alert">
+            <strong>{t("errGeneric")}</strong>
+            <p className="small" style={{ margin: 0 }}>{t("errHelp")}</p>
+          </div>
+        )}
         <button className="btn block lg" style={{ marginTop: 16 }} onClick={submit} disabled={busy || !f.org_name || (!f.contact_email && !f.contact_phone) || f.offers.length === 0}>
-          {t("sendOffer")}
+          {busy ? t("saving") : t("sendOffer")}
         </button>
       </div>
       <p className="small muted">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLang } from "@/lib/LangContext";
 import { supabase, Resource } from "@/lib/supabase";
 import { ResourceCard } from "@/components/ResourceList";
+import { Skeleton } from "@/components/Skeleton";
 
 const TOPICS: { need: string; icon: string }[] = [
   { need: "benefits", icon: "💳" },
@@ -22,13 +23,17 @@ export default function ResourcesHub() {
   const { t } = useLang();
   const [need, setNeed] = useState<string>("benefits");
   const [all, setAll] = useState<Resource[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     supabase()
       .from("resources")
       .select("*")
       .order("priority")
-      .then(({ data }) => setAll((data as Resource[]) ?? []));
+      .then(({ data }) => {
+        setAll((data as Resource[]) ?? []);
+        setLoaded(true);
+      });
   }, []);
 
   const list = all.filter((r) => r.need === need);
@@ -51,9 +56,15 @@ export default function ResourcesHub() {
         ))}
       </div>
 
-      <div className="card" style={{ marginTop: 16 }}>
-        {list.length === 0 ? <p className="small muted">{t("noResources")}</p> : list.map((r) => <ResourceCard key={r.id} r={r} />)}
-      </div>
+      {!loaded ? (
+        <div style={{ marginTop: 16 }}>
+          <Skeleton cards={1} heading={false} />
+        </div>
+      ) : (
+        <div className="card" style={{ marginTop: 16 }}>
+          {list.length === 0 ? <p className="small muted">{t("noResources")}</p> : list.map((r) => <ResourceCard key={r.id} r={r} />)}
+        </div>
+      )}
       <p className="emergency">{t("emergency")}</p>
     </main>
   );

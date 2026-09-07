@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useLang } from "@/lib/LangContext";
 import { AREAS } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
+import { Skeleton } from "./Skeleton";
 
 type PublicHelper = {
   id: string;
@@ -23,6 +24,7 @@ export default function HelpersList() {
   const [helpers, setHelpers] = useState<PublicHelper[]>([]);
   const [sent, setSent] = useState<Record<string, boolean>>({});
   const [loaded, setLoaded] = useState(false);
+  const [err, setErr] = useState(false);
 
   useEffect(() => {
     let q = supabase().from("public_helpers").select("*");
@@ -35,21 +37,32 @@ export default function HelpersList() {
 
   async function requestMatch(helperId: string) {
     if (!intakeId) return;
+    setErr(false);
     const { error } = await supabase().from("matches").insert({ intake_id: intakeId, helper_id: helperId, meet_area: area || null });
-    if (!error) setSent({ ...sent, [helperId]: true });
+    if (error) setErr(true);
+    else setSent({ ...sent, [helperId]: true });
   }
 
   return (
     <main className="container">
       <h1>{t("helpersTitle")}</h1>
-      <select value={area} onChange={(e) => setArea(e.target.value)}>
+      <label className="field" htmlFor="helper-area">{t("areaLabel")}</label>
+      <select id="helper-area" value={area} onChange={(e) => setArea(e.target.value)}>
         <option value="">{t("allAreas")}</option>
         {AREAS.map((x) => (
           <option key={x}>{x}</option>
         ))}
       </select>
 
-      <div style={{ marginTop: 14 }}>
+      {err && (
+        <div className="errorbox" role="alert">
+          <strong>{t("errGeneric")}</strong>
+          <p className="small" style={{ margin: 0 }}>{t("errHelp")}</p>
+        </div>
+      )}
+
+      <div style={{ marginTop: 24 }}>
+        {!loaded && <Skeleton cards={2} heading={false} />}
         {loaded && helpers.length === 0 && <div className="card">{t("noHelpers")}</div>}
         {helpers.map((h) => (
           <div className="card" key={h.id}>

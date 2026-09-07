@@ -7,6 +7,7 @@ import { useLang } from "@/lib/LangContext";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
 import { DOC_ICONS, DocumentCase, DocumentFile, DocumentStep, KioskLite, STEP_STATUSES, StepStatus, caseNumber, fullName, makePickupCode, wantedDocs } from "@/lib/documents";
+import { PageSkeleton } from "./Skeleton";
 
 const STAFF = ["helper", "driver", "admin"];
 const HH_ADDRESS = "Helping Hand, c/o [warehouse address], North Miami, FL 33161";
@@ -131,7 +132,7 @@ export default function Packet() {
     load();
   }
 
-  if (loading) return <main className="container" />;
+  if (loading) return <PageSkeleton cards={2} />;
   if (!user || !profile || !STAFF.includes(profile.role))
     return (
       <main className="container">
@@ -139,7 +140,7 @@ export default function Packet() {
         <p className="muted">{t("navOnly")}</p>
       </main>
     );
-  if (!c) return <main className="container"><p className="muted">…</p></main>;
+  if (!c) return <PageSkeleton cards={2} />;
 
   const name = fullName(c);
   const wants = wantedDocs(c);
@@ -274,7 +275,12 @@ export default function Packet() {
           {wants.includes("benefits") && <button className="btn secondary" disabled={!!busy} onClick={() => downloadForm("cfes2337")}>📄 {busy === "cfes2337" ? "…" : FORM_LABEL.cfes2337}</button>}
           <button className="btn secondary" disabled={!!busy} onClick={() => downloadForm("letter")}>📄 {busy === "letter" ? "…" : FORM_LABEL.letter}</button>
         </div>
-        {formErr && <p className="small" style={{ color: "#a5462f", marginTop: 8 }}>{formErr}</p>}
+        {formErr && (
+          <div className="errorbox" role="alert">
+            <strong>{t("errGeneric")}</strong>
+            <p className="small" style={{ margin: 0 }}>{formErr}</p>
+          </div>
+        )}
       </section>
 
       {/* Pre-filled forms */}

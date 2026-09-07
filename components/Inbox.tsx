@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLang } from "@/lib/LangContext";
 import { supabase } from "@/lib/supabase";
+import { Skeleton } from "./Skeleton";
 
 export type Message = {
   id: string;
@@ -21,10 +22,12 @@ export default function Inbox({ userId }: { userId: string }) {
   const { t } = useLang();
   const [msgs, setMsgs] = useState<Message[]>([]);
   const [open, setOpen] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   async function load() {
     const { data } = await supabase().from("messages").select("*").eq("to_user", userId).order("created_at", { ascending: false }).limit(100);
     setMsgs((data as Message[]) ?? []);
+    setLoaded(true);
   }
   useEffect(() => {
     load();
@@ -41,9 +44,23 @@ export default function Inbox({ userId }: { userId: string }) {
 
   return (
     <div>
-      {msgs.length === 0 && <div className="card">{t("inboxEmpty")}</div>}
+      {!loaded && <Skeleton cards={2} heading={false} />}
+      {loaded && msgs.length === 0 && <div className="card">{t("inboxEmpty")}</div>}
       {msgs.map((m) => (
-        <div className={`card msg ${m.read_at ? "" : "unread"}`} key={m.id} onClick={() => openMsg(m)}>
+        <div
+          className={`card msg ${m.read_at ? "" : "unread"}`}
+          key={m.id}
+          role="button"
+          tabIndex={0}
+          aria-expanded={open === m.id}
+          onClick={() => openMsg(m)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              openMsg(m);
+            }
+          }}
+        >
           <div className="row between">
             <h3>
               {KIND_ICON[m.kind] ?? "🔔"} {m.subject}

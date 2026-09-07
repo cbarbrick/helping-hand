@@ -6,6 +6,7 @@ import { useLang } from "@/lib/LangContext";
 import { AREAS } from "@/lib/i18n";
 import { supabase, Intake } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
+import { PageSkeleton, Skeleton } from "@/components/Skeleton";
 
 type MatchRow = { id: string; intake_id: string; status: string; helper_id: string | null };
 
@@ -15,6 +16,7 @@ export default function HelperDashboard() {
   const [area, setArea] = useState<string>("");
   const [intakes, setIntakes] = useState<Intake[]>([]);
   const [matches, setMatches] = useState<MatchRow[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (profile?.area && !area) setArea(profile.area);
@@ -24,7 +26,10 @@ export default function HelperDashboard() {
     if (!user) return;
     let q = supabase().from("intakes").select("*").in("status", ["open", "matched"]).order("created_at", { ascending: false }).limit(50);
     if (area) q = q.eq("area", area);
-    q.then(({ data }) => setIntakes((data as Intake[]) ?? []));
+    q.then(({ data }) => {
+      setIntakes((data as Intake[]) ?? []);
+      setLoaded(true);
+    });
     supabase()
       .from("matches")
       .select("id,intake_id,status,helper_id")
@@ -45,7 +50,7 @@ export default function HelperDashboard() {
     setMatches((data as MatchRow[]) ?? []);
   }
 
-  if (loading) return <main className="container" />;
+  if (loading) return <PageSkeleton cards={2} wide />;
   if (!user)
     return (
       <main className="container">
@@ -61,14 +66,16 @@ export default function HelperDashboard() {
   return (
     <main className="container wide">
       <h1>{t("openRequests")}</h1>
-      <select value={area} onChange={(e) => setArea(e.target.value)}>
+      <label className="field" htmlFor="dash-area">{t("areaLabel")}</label>
+      <select id="dash-area" value={area} onChange={(e) => setArea(e.target.value)}>
         <option value="">{t("allAreas")}</option>
         {AREAS.map((x) => (
           <option key={x}>{x}</option>
         ))}
       </select>
-      <div style={{ marginTop: 14 }}>
-        {intakes.length === 0 && <div className="card">{t("noOpen")}</div>}
+      <div style={{ marginTop: 24 }}>
+        {!loaded && <Skeleton cards={2} heading={false} />}
+        {loaded && intakes.length === 0 && <div className="card">{t("noOpen")}</div>}
         {intakes.map((i) => (
           <div className="card" key={i.id}>
             <div className="row between">

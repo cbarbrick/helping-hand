@@ -7,7 +7,6 @@ import { useLang } from "@/lib/LangContext";
 import { AREAS, NEEDS, Need } from "@/lib/i18n";
 import { supabase, Resource } from "@/lib/supabase";
 import { ResourceCard } from "./ResourceList";
-import LangSwitch from "./LangSwitch";
 import PinLogin from "./PinLogin";
 import { useSession } from "@/lib/useSession";
 
@@ -396,11 +395,8 @@ export default function HelpFlow() {
 
   return (
     <main className="container">
-      <div className="row between" style={{ marginBottom: 6 }}>
-        <span className="small muted">{t("stepOf", { a: idx + 1, b: total })}</span>
-        <LangSwitch compact />
-      </div>
-      <div className="progress">
+      <p className="small muted" style={{ margin: "0 0 6px" }}>{t("stepOf", { a: idx + 1, b: total })}</p>
+      <div className="progress" role="progressbar" aria-valuenow={idx + 1} aria-valuemin={1} aria-valuemax={total}>
         <div style={{ width: `${((idx + 1) / total) * 100}%` }} />
       </div>
 
@@ -448,7 +444,7 @@ export default function HelpFlow() {
           <h1>{t("qRegistrant")}</h1>
           <p className="hint">{t("qRegistrantHint")}</p>
           <label className="field">{t("yourName")}</label>
-          <input type="text" value={a.registrantName} onChange={(e) => set({ registrantName: e.target.value })} />
+          <input type="text" autoComplete="name" value={a.registrantName} onChange={(e) => set({ registrantName: e.target.value })} />
           <label className="field">{t("relationship")}</label>
           <div className="chips">
             {["friend", "neighbor", "family", "caseworker", "volunteer", "other"].map((r) => (
@@ -464,7 +460,8 @@ export default function HelpFlow() {
         <>
           <h1>{a.household === "family" ? s("qNameFamily") : s("qName")}</h1>
           <p className="hint">{t("qNameHint")}</p>
-          <input type="text" value={a.name} onChange={(e) => set({ name: e.target.value })} autoFocus />
+          <input type="text" autoComplete="given-name" value={a.name} onChange={(e) => set({ name: e.target.value })} autoFocus />
+          <p className="note">🔒 {t("privacyNote")}</p>
         </>
       )}
 
@@ -627,16 +624,30 @@ export default function HelpFlow() {
         <>
           <h1>{s("qContact")}</h1>
           <p className="hint">{t("qContactHint")}</p>
-          <input type="text" value={a.contact} onChange={(e) => set({ contact: e.target.value })} />
+          <input type="text" inputMode="tel" autoComplete="tel" value={a.contact} onChange={(e) => set({ contact: e.target.value })} />
           <label className="field">
             {t("qNotes")} <span className="muted small">({t("optional")})</span>
           </label>
           <textarea value={a.notes} onChange={(e) => set({ notes: e.target.value })} />
-          {error && <p className="error">{error}</p>}
+          <p className="note">🔒 {t("privacyNote")}</p>
+          {error && (
+            <div className="errorbox" role="alert">
+              <strong>{t("errGeneric")}</strong>
+              <p className="small" style={{ margin: 0 }}>{t("errHelp")}</p>
+              <div className="row">
+                <button className="btn" onClick={submit} disabled={saving}>
+                  {t("retry")}
+                </button>
+                <a className="btn secondary" href="tel:211">
+                  📞 211
+                </a>
+              </div>
+            </div>
+          )}
         </>
       )}
 
-      <div className="row between" style={{ marginTop: 24 }}>
+      <div className="stepnav">
         <button className="btn ghost" onClick={back} disabled={idx === 0}>
           ← {t("back")}
         </button>

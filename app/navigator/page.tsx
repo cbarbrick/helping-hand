@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
 import { DOC_ICONS, DocumentCase, DocumentStep, KioskLite, caseNumber, fullName, wantedDocs } from "@/lib/documents";
 import PinLogin from "@/components/PinLogin";
+import { PageSkeleton } from "@/components/Skeleton";
 
 type Filter = "open" | "kiosk" | "all";
 const STAFF = ["helper", "driver", "admin"];
@@ -36,7 +37,7 @@ export default function NavigatorPage() {
     })();
   }, [profile]);
 
-  if (loading) return <main className="container" />;
+  if (loading) return <PageSkeleton cards={2} />;
   if (!user)
     return (
       <main className="container">

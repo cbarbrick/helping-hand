@@ -15,6 +15,7 @@ export default function DonatePage() {
   const [f, setF] = useState({ name: "", contact: "", items: "", dropoff_warehouse: "", amount: "", message: "" });
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(false);
   const set = (p: Partial<typeof f>) => setF({ ...f, ...p });
 
   useEffect(() => {
@@ -28,7 +29,8 @@ export default function DonatePage() {
   async function submit() {
     if (!kind) return;
     setBusy(true);
-    await supabase().from("donations").insert({
+    setErr(false);
+    const { error } = await supabase().from("donations").insert({
       kind,
       name: f.name || null,
       contact: f.contact || null,
@@ -37,17 +39,26 @@ export default function DonatePage() {
       amount: f.amount || null,
       message: f.message || null,
     });
-    setSent(true);
     setBusy(false);
+    if (error) setErr(true);
+    else setSent(true);
   }
+
+  const ErrorBox = () =>
+    err ? (
+      <div className="errorbox" role="alert">
+        <strong>{t("errGeneric")}</strong>
+        <p className="small" style={{ margin: 0 }}>{t("errHelp")}</p>
+      </div>
+    ) : null;
 
   if (sent)
     return (
       <main className="container">
         <h1>{t("donateThanks")}</h1>
         <p>{t("donateThanksBody")}</p>
-        <Link className="btn" href="/">
-          {t("back")}
+        <Link className="btn" href="/home">
+          {t("home")}
         </Link>
       </main>
     );
@@ -86,11 +97,13 @@ export default function DonatePage() {
           <label className="field">{t("pledgeAmount")}</label>
           <input type="text" placeholder="$25 / month" value={f.amount} onChange={(e) => set({ amount: e.target.value })} />
           <label className="field">{t("yourName")}</label>
-          <input type="text" value={f.name} onChange={(e) => set({ name: e.target.value })} />
+          <input type="text" autoComplete="name" value={f.name} onChange={(e) => set({ name: e.target.value })} />
           <label className="field">{t("contactEmail")}</label>
-          <input type="text" value={f.contact} onChange={(e) => set({ contact: e.target.value })} />
-          <button className="btn block" style={{ marginTop: 16 }} onClick={submit} disabled={busy || !f.contact}>
-            {t("sendPledge")}
+          <input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" value={f.contact} onChange={(e) => set({ contact: e.target.value })} />
+          <p className="note">🔒 {t("privacyNote")}</p>
+          <ErrorBox />
+          <button className="btn block lg" style={{ marginTop: 16 }} onClick={submit} disabled={busy || !f.contact}>
+            {busy ? t("saving") : t("sendPledge")}
           </button>
         </div>
       )}
@@ -110,11 +123,13 @@ export default function DonatePage() {
             ))}
           </select>
           <label className="field">{t("yourName")}</label>
-          <input type="text" value={f.name} onChange={(e) => set({ name: e.target.value })} />
+          <input type="text" autoComplete="name" value={f.name} onChange={(e) => set({ name: e.target.value })} />
           <label className="field">{t("yourContact")}</label>
-          <input type="text" value={f.contact} onChange={(e) => set({ contact: e.target.value })} />
-          <button className="btn block" style={{ marginTop: 16 }} onClick={submit} disabled={busy || !f.items || !f.contact}>
-            {t("sendPledge")}
+          <input type="text" inputMode="tel" autoComplete="tel" value={f.contact} onChange={(e) => set({ contact: e.target.value })} />
+          <p className="note">🔒 {t("privacyNote")}</p>
+          <ErrorBox />
+          <button className="btn block lg" style={{ marginTop: 16 }} onClick={submit} disabled={busy || !f.items || !f.contact}>
+            {busy ? t("saving") : t("sendPledge")}
           </button>
         </div>
       )}

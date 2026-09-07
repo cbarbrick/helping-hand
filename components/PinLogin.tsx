@@ -27,7 +27,8 @@ export default function PinLogin({ compact = false, onDone }: { compact?: boolea
       pin_invalid: t("errPin"),
       bad_login: t("errLogin"),
     };
-    return map[code] ?? code;
+    // Never show a raw backend error to someone trying to get help.
+    return map[code] ?? t("errGeneric");
   };
 
   async function go() {
@@ -60,7 +61,7 @@ export default function PinLogin({ compact = false, onDone }: { compact?: boolea
           {mode === "signup" && !compact && (
             <>
               <label className="field">{t("displayName")}</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+              <input type="text" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
               <label className="field">{t("role")}</label>
               <div className="chips">
                 {ROLES.map((r) => (
@@ -76,6 +77,8 @@ export default function PinLogin({ compact = false, onDone }: { compact?: boolea
             type="text"
             autoCapitalize="none"
             autoCorrect="off"
+            autoComplete="username"
+            spellCheck={false}
             placeholder={t("usernameHint")}
             value={username}
             onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
@@ -84,6 +87,7 @@ export default function PinLogin({ compact = false, onDone }: { compact?: boolea
           <input
             type="tel"
             inputMode="numeric"
+            autoComplete="one-time-code"
             maxLength={6}
             placeholder="123456"
             value={pin}
@@ -96,12 +100,13 @@ export default function PinLogin({ compact = false, onDone }: { compact?: boolea
       {mode === "email" && (
         <>
           <label className="field">{t("email")}</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} value={email} onChange={(e) => setEmail(e.target.value)} />
           <label className="field">{t("password")}</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </>
       )}
-      {err && <p className="error">{err}</p>}
+      {mode === "signup" && <p className="note">🔒 {t("privacyNote")}</p>}
+      {err && <p className="error" role="alert">{err}</p>}
       {msg && <p className="success">{msg}</p>}
       <div className="stack" style={{ marginTop: 16 }}>
         <button

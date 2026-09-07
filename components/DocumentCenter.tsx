@@ -7,10 +7,10 @@ import { useSession } from "@/lib/useSession";
 import { supabase } from "@/lib/supabase";
 import { DOC_ICONS, DOC_TYPES, DocType, DocumentCase, DocumentFile, KioskLite, caseNumber, fullName } from "@/lib/documents";
 import PinLogin from "./PinLogin";
-import LangSwitch from "./LangSwitch";
 import SignaturePad from "./SignaturePad";
 import CameraCapture from "./CameraCapture";
 import DocStatus from "./DocStatus";
+import { PageSkeleton } from "./Skeleton";
 
 type Tri = boolean | null;
 type StepId = "which" | "about" | "parents" | "ssn" | "have" | "reach" | "consent";
@@ -92,6 +92,7 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
   const [photoLabel, setPhotoLabel] = useState("");
   const [sending, setSending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [err, setErr] = useState(false);
   const set = (p: Partial<Draft>) => setD((x) => ({ ...x, ...p }));
 
   // Load an open case (status view) or start a draft
@@ -184,8 +185,9 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
   async function submit() {
     if (!caseId || !user) return;
     setSending(true);
+    setErr(false);
     const sb = supabase();
-    await sb
+    const { error: caseErr } = await sb
       .from("document_cases")
       .update({
         mail_authorized: d.mail_authorized,
@@ -197,10 +199,14 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
         pickup_kiosk_id: d.pickup_kiosk_id || null,
       })
       .eq("id", caseId);
-    await sb.from("document_steps").insert(
+    const { error: stepErr } = await sb.from("document_steps").insert(
       d.wants.map((doc_type) => ({ case_id: caseId, user_id: user.id, doc_type, status: "ready", kiosk_id: d.pickup_kiosk_id || null }))
     );
     setSending(false);
+    if (caseErr || stepErr) {
+      setErr(true);
+      return;
+    }
     setSubmitted(true);
     window.scrollTo({ top: 0 });
   }
@@ -208,10 +214,12 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
   async function upload(file: File) {
     if (!caseId || !user) return;
     setUploading(true);
+    setErr(false);
     const sb = supabase();
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
     const path = `${user.id}/${caseId}/${Date.now()}.${ext}`;
     const { error } = await sb.storage.from("case-docs").upload(path, file, { contentType: file.type || "image/jpeg" });
+    if (error) setErr(true);
     if (!error) {
       const { data } = await sb.from("document_files").insert({ case_id: caseId, user_id: user.id, label: photoLabel || null, storage_path: path }).select().single();
       if (data) setFiles((f) => [...f, data as DocumentFile]);
@@ -220,7 +228,7 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
     setUploading(false);
   }
 
-  if (loading || (user && existing === undefined)) return <main className="container" />;
+  if (loading || (user && existing === undefined)) return <PageSkeleton cards={2} />;
 
   if (!user)
     return (
@@ -236,10 +244,7 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
   if (existing || submitted)
     return (
       <main className="container">
-        <div className="row between">
-          <h1>{t("docsStatusTitle")}</h1>
-          {!kiosk && <LangSwitch compact />}
-        </div>
+        <h1>{t("docsStatusTitle")}</h1>
         <p className="muted">{t("docsStatusIntro")}</p>
         {caseId && (
           <div className="card soft">
@@ -272,11 +277,10 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
 
   return (
     <main className="container">
-      <div className="row between" style={{ marginBottom: 6 }}>
-        <span className="small muted">{t("stepOf", { a: idx + 1, b: STEPS.length })} · {t("docsTitle")}</span>
-        {!kiosk && <LangSwitch compact />}
-      </div>
-      <div className="progress">
+      <p className="small muted" style={{ margin: "0 0 6px" }}>
+        {t("stepOf", { a: idx + 1, b: STEPS.length })} · {t("docsTitle")}
+      </p>
+      <div className="progress" role="progressbar" aria-valuenow={idx + 1} aria-valuemin={1} aria-valuemax={STEPS.length}>
         <div style={{ width: `${((idx + 1) / STEPS.length) * 100}%` }} />
       </div>
 
@@ -301,15 +305,15 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
           <h1>{t("docsAbout")}</h1>
           <p className="hint">{t("docsAboutSub")}</p>
           <label className="field">{t("legalFirst")}</label>
-          <input type="text" value={d.legal_first} onChange={(e) => set({ legal_first: e.target.value })} />
+          <input type="text" autoComplete="given-name" value={d.legal_first} onChange={(e) => set({ legal_first: e.target.value })} />
           <label className="field">{t("legalMiddle")} <span className="muted">({t("optional")})</span></label>
-          <input type="text" value={d.legal_middle} onChange={(e) => set({ legal_middle: e.target.value })} />
+          <input type="text" autoComplete="additional-name" value={d.legal_middle} onChange={(e) => set({ legal_middle: e.target.value })} />
           <label className="field">{t("legalLast")}</label>
-          <input type="text" value={d.legal_last} onChange={(e) => set({ legal_last: e.target.value })} />
+          <input type="text" autoComplete="family-name" value={d.legal_last} onChange={(e) => set({ legal_last: e.target.value })} />
           <label className="field">{t("otherNames")} <span className="muted">({t("optional")})</span></label>
           <input type="text" value={d.other_names} onChange={(e) => set({ other_names: e.target.value })} />
           <label className="field">{t("dob")}</label>
-          <input type="date" value={d.dob} onChange={(e) => set({ dob: e.target.value })} />
+          <input type="date" autoComplete="bday" value={d.dob} onChange={(e) => set({ dob: e.target.value })} />
           <label className="field">{t("sex")}</label>
           <div className="chips">
             {["male", "female", "x"].map((s) => (
@@ -317,11 +321,12 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
             ))}
           </div>
           <label className="field">{t("birthPlace")}</label>
-          <input type="text" placeholder={t("birthCity")} value={d.birth_city} onChange={(e) => set({ birth_city: e.target.value })} />
+          <input type="text" aria-label={t("birthCity")} placeholder={t("birthCity")} value={d.birth_city} onChange={(e) => set({ birth_city: e.target.value })} />
           <div className="row" style={{ flexWrap: "nowrap" }}>
-            <input type="text" placeholder={t("birthState")} value={d.birth_state} onChange={(e) => set({ birth_state: e.target.value })} />
-            <input type="text" placeholder={t("birthCountry")} value={d.birth_country} onChange={(e) => set({ birth_country: e.target.value })} />
+            <input type="text" aria-label={t("birthState")} placeholder={t("birthState")} value={d.birth_state} onChange={(e) => set({ birth_state: e.target.value })} />
+            <input type="text" aria-label={t("birthCountry")} placeholder={t("birthCountry")} value={d.birth_country} onChange={(e) => set({ birth_country: e.target.value })} />
           </div>
+          <p className="note">🔒 {t("privacyNote")}</p>
         </>
       )}
 
@@ -380,7 +385,7 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
           <h1>{t("docsReach")}</h1>
           <p className="hint">{t("docsReachSub")}</p>
           <label className="field">{t("phoneOptional")}</label>
-          <input type="tel" value={d.phone} onChange={(e) => set({ phone: e.target.value })} />
+          <input type="tel" inputMode="tel" autoComplete="tel" value={d.phone} onChange={(e) => set({ phone: e.target.value })} />
           <label className="field">{t("bestWay")}</label>
           <div className="chips">
             {["app", "helper", "phone"].map((s) => (
@@ -417,13 +422,24 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
             <span>{t("consentTruth")}</span>
           </label>
           <label className="field">{t("typedName")}</label>
-          <input type="text" value={d.signature_name} placeholder={fullName({ legal_first: d.legal_first, legal_middle: d.legal_middle, legal_last: d.legal_last })} onChange={(e) => set({ signature_name: e.target.value })} />
+          <input type="text" autoComplete="name" value={d.signature_name} placeholder={fullName({ legal_first: d.legal_first, legal_middle: d.legal_middle, legal_last: d.legal_last })} onChange={(e) => set({ signature_name: e.target.value })} />
           <label className="field">{t("signHere")}</label>
           <SignaturePad onChange={(v) => set({ signature_data: v })} />
+          <p className="note">🔒 {t("privacyNote")}</p>
         </>
       )}
 
-      <div className="row between" style={{ marginTop: 24 }}>
+      {err && (
+        <div className="errorbox" role="alert">
+          <strong>{t("errGeneric")}</strong>
+          <p className="small" style={{ margin: 0 }}>{t("errHelp")}</p>
+          <div className="row">
+            <a className="btn secondary" href="tel:211">📞 211</a>
+          </div>
+        </div>
+      )}
+
+      <div className="stepnav">
         {idx > 0 ? (
           <button className="btn ghost" onClick={() => setIdx((i) => i - 1)}>← {t("back")}</button>
         ) : (

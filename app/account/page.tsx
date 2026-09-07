@@ -7,6 +7,7 @@ import { AREAS, NEEDS } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
 import PinLogin from "@/components/PinLogin";
+import { PageSkeleton } from "@/components/Skeleton";
 
 const ROLES = ["seeker", "helper", "employer", "driver"] as const;
 
@@ -62,7 +63,7 @@ export default function AccountPage() {
     setBusy(false);
   }
 
-  if (loading) return <main className="container" />;
+  if (loading) return <PageSkeleton cards={1} />;
 
   if (!user) {
     return (
@@ -114,7 +115,7 @@ export default function AccountPage() {
       </div>
       <div className="card">
         <label className="field">{t("displayName")}</label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+        <input type="text" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
         <label className="field">{t("role")}</label>
         <div className="chips">
           {ROLES.map((r) => (
@@ -133,7 +134,7 @@ export default function AccountPage() {
         <label className="field">
           {t("contactPhone")} <span className="muted small">({t("optional")})</span>
         </label>
-        <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        <input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
         {pRole === "helper" && (
           <>
             <label className="check">
@@ -156,10 +157,15 @@ export default function AccountPage() {
             <textarea value={bio} onChange={(e) => setBio(e.target.value)} />
           </>
         )}
-        {err && <p className="error">{err}</p>}
-        {msg && <p className="success">{msg}</p>}
-        <button className="btn block" style={{ marginTop: 16 }} onClick={saveProfile} disabled={busy}>
-          {t("save")}
+        {err && (
+          <div className="errorbox" role="alert">
+            <strong>{t("errGeneric")}</strong>
+            <p className="small" style={{ margin: 0 }}>{t("errHelp")}</p>
+          </div>
+        )}
+        {msg && <p className="success" role="status">{msg}</p>}
+        <button className="btn block lg" style={{ marginTop: 16 }} onClick={saveProfile} disabled={busy}>
+          {busy ? t("saving") : t("save")}
         </button>
       </div>
     </main>

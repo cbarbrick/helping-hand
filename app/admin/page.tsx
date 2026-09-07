@@ -6,6 +6,7 @@ import { useLang } from "@/lib/LangContext";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "@/lib/useSession";
 import TrustReport from "@/components/TrustReport";
+import { PageSkeleton } from "@/components/Skeleton";
 
 type Offer = {
   id: string;
@@ -64,7 +65,7 @@ export default function AdminPage() {
     setSaved(true);
   }
 
-  if (loading) return <main className="container" />;
+  if (loading) return <PageSkeleton cards={2} wide />;
   if (!user || profile?.role !== "admin")
     return (
       <main className="container">
