@@ -91,7 +91,7 @@ export default function DriverPage() {
         return (
           <div className="card" key={r.id}>
             <div className="row between">
-              <h3 style={{ fontFamily: "ui-monospace, monospace", letterSpacing: ".1em" }}>{r.pickup_code}</h3>
+              <h3 className="mono">{r.pickup_code}</h3>
               <span className={`tag ${mins > 20 ? "warm" : ""}`}>{t("minutesAgo", { n: mins })}</span>
             </div>
             <div className="hint">

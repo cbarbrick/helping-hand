@@ -115,7 +115,7 @@ export default function JobsPage() {
                 <input type="text" inputMode="tel" autoComplete="tel" value={contact} onChange={(e) => setContact(e.target.value)} />
                 <label className="field">{t("message")}</label>
                 <textarea value={message} onChange={(e) => setMessage(e.target.value)} />
-                <p className="note">🔒 {t("privacyNote")}</p>
+                <p className="note"><span aria-hidden="true">🔒</span><span>{t("privacyNote")}</span></p>
                 {err && (
                   <div className="errorbox" role="alert">
                     <strong>{t("errGeneric")}</strong>

@@ -249,7 +249,7 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
         {caseId && (
           <div className="card soft">
             <div className="small muted">{t("docsCaseNumber")}</div>
-            <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: ".05em" }}>{caseNumber(caseId)}</div>
+            <div className="casenum">{caseNumber(caseId)}</div>
             <div className="hint">{t("showThis")}</div>
           </div>
         )}
@@ -326,7 +326,7 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
             <input type="text" aria-label={t("birthState")} placeholder={t("birthState")} value={d.birth_state} onChange={(e) => set({ birth_state: e.target.value })} />
             <input type="text" aria-label={t("birthCountry")} placeholder={t("birthCountry")} value={d.birth_country} onChange={(e) => set({ birth_country: e.target.value })} />
           </div>
-          <p className="note">🔒 {t("privacyNote")}</p>
+          <p className="note"><span aria-hidden="true">🔒</span><span>{t("privacyNote")}</span></p>
         </>
       )}
 
@@ -425,7 +425,7 @@ export default function DocumentCenter({ kiosk = false }: { kiosk?: boolean }) {
           <input type="text" autoComplete="name" value={d.signature_name} placeholder={fullName({ legal_first: d.legal_first, legal_middle: d.legal_middle, legal_last: d.legal_last })} onChange={(e) => set({ signature_name: e.target.value })} />
           <label className="field">{t("signHere")}</label>
           <SignaturePad onChange={(v) => set({ signature_data: v })} />
-          <p className="note">🔒 {t("privacyNote")}</p>
+          <p className="note"><span aria-hidden="true">🔒</span><span>{t("privacyNote")}</span></p>
         </>
       )}
 

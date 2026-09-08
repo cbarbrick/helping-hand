@@ -105,7 +105,7 @@ export default function PinLogin({ compact = false, onDone }: { compact?: boolea
           <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </>
       )}
-      {mode === "signup" && <p className="note">🔒 {t("privacyNote")}</p>}
+      {mode === "signup" && <p className="note"><span aria-hidden="true">🔒</span><span>{t("privacyNote")}</span></p>}
       {err && <p className="error" role="alert">{err}</p>}
       {msg && <p className="success">{msg}</p>}
       <div className="stack" style={{ marginTop: 16 }}>

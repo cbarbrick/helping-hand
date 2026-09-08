@@ -43,7 +43,7 @@ export default function RidesList({ userId }: { userId: string }) {
 
   return (
     <>
-      <h1 style={{ marginTop: 28 }}>🚗 {t("rides")}</h1>
+      <h2 style={{ marginTop: 32 }}>🚗 {t("rides")}</h2>
       {rides.length === 0 && <div className="card">{t("noOpen")}</div>}
       {rides.map((r) => {
         const n = NEXT[r.status];

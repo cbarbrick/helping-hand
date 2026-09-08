@@ -100,7 +100,7 @@ export default function DonatePage() {
           <input type="text" autoComplete="name" value={f.name} onChange={(e) => set({ name: e.target.value })} />
           <label className="field">{t("contactEmail")}</label>
           <input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" value={f.contact} onChange={(e) => set({ contact: e.target.value })} />
-          <p className="note">🔒 {t("privacyNote")}</p>
+          <p className="note"><span aria-hidden="true">🔒</span><span>{t("privacyNote")}</span></p>
           <ErrorBox />
           <button className="btn block lg" style={{ marginTop: 16 }} onClick={submit} disabled={busy || !f.contact}>
             {busy ? t("saving") : t("sendPledge")}
@@ -126,7 +126,7 @@ export default function DonatePage() {
           <input type="text" autoComplete="name" value={f.name} onChange={(e) => set({ name: e.target.value })} />
           <label className="field">{t("yourContact")}</label>
           <input type="text" inputMode="tel" autoComplete="tel" value={f.contact} onChange={(e) => set({ contact: e.target.value })} />
-          <p className="note">🔒 {t("privacyNote")}</p>
+          <p className="note"><span aria-hidden="true">🔒</span><span>{t("privacyNote")}</span></p>
           <ErrorBox />
           <button className="btn block lg" style={{ marginTop: 16 }} onClick={submit} disabled={busy || !f.items || !f.contact}>
             {busy ? t("saving") : t("sendPledge")}

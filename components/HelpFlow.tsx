@@ -300,7 +300,7 @@ export default function HelpFlow() {
         {intakeId && (
           <div className="card soft">
             <div className="small muted">{t("yourNumber")}</div>
-            <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: ".05em" }}>HH-{intakeId.slice(0, 6).toUpperCase()}</div>
+            <div className="casenum">HH-{intakeId.slice(0, 6).toUpperCase()}</div>
             <div className="hint">
               {t("showThis")}
               {a.household === "family" && ` · ${t("familyOf", { n: a.adults + a.children })}`}
@@ -461,7 +461,7 @@ export default function HelpFlow() {
           <h1>{a.household === "family" ? s("qNameFamily") : s("qName")}</h1>
           <p className="hint">{t("qNameHint")}</p>
           <input type="text" autoComplete="given-name" value={a.name} onChange={(e) => set({ name: e.target.value })} autoFocus />
-          <p className="note">🔒 {t("privacyNote")}</p>
+          <p className="note"><span aria-hidden="true">🔒</span><span>{t("privacyNote")}</span></p>
         </>
       )}
 
@@ -629,7 +629,7 @@ export default function HelpFlow() {
             {t("qNotes")} <span className="muted small">({t("optional")})</span>
           </label>
           <textarea value={a.notes} onChange={(e) => set({ notes: e.target.value })} />
-          <p className="note">🔒 {t("privacyNote")}</p>
+          <p className="note"><span aria-hidden="true">🔒</span><span>{t("privacyNote")}</span></p>
           {error && (
             <div className="errorbox" role="alert">
               <strong>{t("errGeneric")}</strong>
