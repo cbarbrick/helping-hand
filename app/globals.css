@@ -158,12 +158,14 @@ header.top {
   z-index: 20;
   padding-top: env(safe-area-inset-top);
 }
+/* Grid, not flex: the brand truncates instead of shoving the language
+   switcher onto a second row, and the mobile menu drops to its own row. */
 header.top .headinner {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "brand nav right";
   align-items: center;
-  justify-content: space-between;
-  gap: var(--s3);
-  flex-wrap: wrap;
+  column-gap: var(--s3);
   max-width: 1120px;
   margin: 0 auto;
   padding: 10px max(var(--pad), env(safe-area-inset-right)) 10px max(var(--pad), env(safe-area-inset-left));
@@ -176,7 +178,10 @@ header.top .brand {
   font-size: 20px;
   color: var(--brand-dark);
   min-height: var(--tap-sm);
+  grid-area: brand;
+  min-width: 0;
 }
+header.top .brand span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 header.top .brand .logo {
   width: 36px; height: 36px;
   border-radius: 10px;
@@ -185,8 +190,8 @@ header.top .brand .logo {
   color: #fff;
   flex: none;
 }
-header.top .topright { display: flex; align-items: center; gap: var(--s2); }
-header.top nav { display: flex; gap: var(--s1); align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+header.top .topright { grid-area: right; display: flex; align-items: center; gap: var(--s2); }
+header.top nav { grid-area: nav; display: flex; gap: var(--s1); align-items: center; flex-wrap: wrap; justify-content: flex-end; min-width: 0; }
 header.top nav a {
   display: inline-flex;
   align-items: center;
@@ -230,6 +235,15 @@ header.top .menubtn {
   cursor: pointer;
 }
 .langbar button.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+.langbar .lang-code { display: none; }
+.langbar.compact .lang-full { display: none; }
+.langbar.compact .lang-code { display: inline; }
+/* Below tablet width, even the full switcher falls back to language codes
+   rather than wrapping onto three rows. */
+@media (max-width: 560px) {
+  .langbar .lang-full { display: none; }
+  .langbar .lang-code { display: inline; }
+}
 
 /* ---------- Card ---------- */
 
@@ -297,8 +311,7 @@ header.top .menubtn {
   background: var(--bg);
   border-top: 1px solid var(--line);
 }
-.stepnav .btn { flex: 1 1 auto; max-width: 60%; }
-.stepnav .btn.ghost { flex: 0 1 auto; }
+.stepnav .btn { flex: 0 0 auto; }
 
 /* ---------- Big choice tiles ---------- */
 
@@ -498,6 +511,19 @@ label.check input, .check input {
   border-radius: var(--radius-sm);
   font-weight: 800;
   font-size: 19px;
+}
+/* Inline links (agency websites, footnote links) still need a 44px target. */
+.hint a[href], p.small a[href], .linkrow a[href] {
+  /* inline-block, not inline-flex: a long agency URL must still wrap. */
+  display: inline-block;
+  max-width: 100%;
+  padding: 12px 0;
+  line-height: 20px;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--brand-dark);
+  font-weight: 600;
 }
 .script {
   background: var(--bg);
@@ -764,17 +790,19 @@ footer.site {
 
 @media (max-width: 760px) {
   :root { --pad: 16px; }
-  header.top .headinner { padding-top: 8px; padding-bottom: 8px; }
+  header.top .headinner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "brand right" "nav nav";
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
   header.top .brand { font-size: 18px; white-space: nowrap; }
-  header.top .topright { margin-left: auto; }
   header.top .menubtn { display: inline-flex; }
   header.top nav { display: none; }
   header.top nav.open {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    width: 100%;
-    order: 3;
     border-top: 1px solid var(--line);
     margin-top: var(--s1);
     padding-top: var(--s2);
@@ -784,13 +812,25 @@ footer.site {
   header.top nav.open a[href="/home"] { display: flex; }
   .quick.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .card { padding: var(--s4); }
-  .stepnav .btn { padding: 14px 18px; }
+  /* On a phone the forward action grows to fill the thumb-reachable width. */
+  .stepnav .btn { padding: 14px 18px; flex: 1 1 auto; max-width: 62%; }
+  .stepnav .btn.ghost { flex: 0 1 auto; }
   table { display: block; overflow-x: auto; max-width: 100%; }
 }
 
 @media (max-width: 420px) {
-  header.top .brand span:last-child { display: none; }
-  .langbar button { padding: 8px 10px; }
+  /* Tighten the bar just enough that the wordmark still fits whole at 375px. */
+  header.top .headinner { column-gap: var(--s2); }
+  header.top .brand { font-size: 17px; gap: 8px; }
+  header.top .brand .logo { width: 34px; height: 34px; }
+  header.top .langbar { gap: 3px; }
+  header.top .langbar button { padding: 8px; font-size: 13px; }
+  header.top .menubtn { width: var(--tap-sm); height: var(--tap-sm); }
   .status-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .chips { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
+}
+
+/* Only drop the wordmark when the bar genuinely cannot hold it. */
+@media (max-width: 359px) {
+  header.top .brand span:last-child { display: none; }
 }

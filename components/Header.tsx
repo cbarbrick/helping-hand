@@ -38,12 +38,6 @@ export default function Header() {
           </span>
           <span>{t("appName")}</span>
         </Link>
-        <div className="topright">
-          <LangSwitch compact />
-          <button className="menubtn" aria-label={t("menu")} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-            {open ? "✕" : "☰"}
-          </button>
-        </div>
         <nav className={open ? "open" : ""}>
           {link("/home", t("home"))}
           {link("/documents", t("docsTitle"))}
@@ -55,6 +49,12 @@ export default function Header() {
           {admin && link("/admin", "Admin")}
           {link("/account", t("account"))}
         </nav>
+        <div className="topright">
+          <LangSwitch compact />
+          <button className="menubtn" aria-label={t("menu")} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+            {open ? "✕" : "☰"}
+          </button>
+        </div>
       </div>
     </header>
   );

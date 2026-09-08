@@ -15,7 +15,7 @@ export function ResourceCard({ r }: { r: Resource }) {
       {r.address && <div className="hint">📍 {r.address}</div>}
       {r.website && (
         <div className="hint">
-          <a href={r.website} target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>
+          <a href={r.website} target="_blank" rel="noreferrer">
             {r.website.replace(/^https?:\/\//, "")}
           </a>
         </div>

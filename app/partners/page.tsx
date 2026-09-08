@@ -127,9 +127,7 @@ export default function PartnersPage() {
         </button>
       </div>
       <p className="small muted">
-        <Link href="/donate" style={{ textDecoration: "underline" }}>
-          {t("individualDonate")}
-        </Link>
+        <Link href="/donate">{t("individualDonate")}</Link>
       </p>
     </main>
   );
