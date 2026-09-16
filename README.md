@@ -16,7 +16,7 @@ Real help, in your language, in your neighborhood. An app + kiosk system for peo
 
 - Next.js 15 (App Router) + TypeScript, plain CSS
 - Supabase (Postgres + Auth + Edge Function `pin-signup`) — project `helping-hand` (ref `fqfadlbdsvlhgictyjob`, us-east-1)
-- Vercel for hosting
+- Vercel for hosting (auto-deploys from `main`; `bootstrap.js` only pulls the `source_files` table when `USE_SOURCE_FILES_TABLE=1`)
 
 ## Run locally
 
