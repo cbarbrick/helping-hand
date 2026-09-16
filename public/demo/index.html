@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Helping Hand</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Helping Hand">
+<meta name="theme-color" content="#2F6B4F">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --bg:#eef4ef;--surface:#fbfdfb;--surface-2:#f3f8f4;--ink:#1d2b23;--ink-muted:#55685d;
+  --line:#d3e2d8;--line-strong:#b9d0c2;--brand:#2f6b4f;--brand-dark:#24553f;--brand-soft:#dcece2;
+  --accent:#417a61;--accent-soft:#e4f1eb;--warn:#7a5312;--warn-soft:#f7ead1;--danger:#8f342c;--danger-soft:#f8e3e0;
+  --gray-tag:#eaefeb;--white:#fff;--shadow:0 2px 12px rgba(36,85,63,.08);
+  --pad:16px;--radius:18px;--radius-sm:12px;--tap:48px;
+  color-scheme:light;
+}
+/* Single-look app: the real product is light-only, so the demo commits to it too. */
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:18px;line-height:1.5;overflow-wrap:break-word;overflow-x:clip;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px;border-radius:6px}
+h1{font-size:clamp(26px,1.4rem + 2.2vw,34px);line-height:1.2;font-weight:800;letter-spacing:-.01em;margin:8px 0;text-wrap:balance}
+h2{font-size:clamp(20px,1.1rem + 1.2vw,24px);line-height:1.25;font-weight:800;margin:24px 0 8px}
+h3{font-size:19px;line-height:1.3;font-weight:700;margin:0 0 4px}
+p{margin:0 0 12px}
+.muted{color:var(--ink-muted)}.small{font-size:15px;line-height:1.5}
+.hint{font-size:15px;line-height:1.5;color:var(--ink-muted);margin-top:4px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.row.between{justify-content:space-between}
+.nowrap{flex-wrap:nowrap}
+
+/* ---- App shell ---- */
+#app{min-height:100%;display:flex;flex-direction:column}
+.screen{display:none;flex:1;flex-direction:column}
+.screen.on{display:flex}
+header.top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+.headinner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px var(--pad);max-width:720px;margin:0 auto;width:100%}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;color:var(--brand-dark);min-height:44px;background:none;border:0;padding:0;cursor:pointer}
+.logo-box{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:10px;background:var(--brand);color:#fff;flex:none}
+.logo-box svg{width:22px;height:28px}
+.menubtn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);color:var(--brand-dark);font-size:22px;line-height:1;cursor:pointer;display:grid;place-items:center}
+nav.menu{display:none;flex-direction:column;border-top:1px solid var(--line);padding:8px var(--pad) 12px;max-width:720px;margin:0 auto;width:100%;gap:2px}
+nav.menu.open{display:flex}
+nav.menu button{display:flex;align-items:center;gap:10px;min-height:var(--tap);padding:10px;border:0;background:none;text-align:left;font-size:17px;font-weight:600;border-radius:10px;cursor:pointer}
+nav.menu button:active{background:var(--brand-soft)}
+nav.menu .staff{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-muted);padding:10px 10px 2px;font-weight:700}
+
+.container{max-width:720px;margin:0 auto;width:100%;padding-block:16px calc(48px + env(safe-area-inset-bottom,0px));padding-left:max(var(--pad),env(safe-area-inset-left));padding-right:max(var(--pad),env(safe-area-inset-right));flex:1;display:flex;flex-direction:column}
+
+/* ---- Language switcher ---- */
+.langbar{display:flex;gap:4px;flex-wrap:wrap}
+.langbar button{min-height:40px;border:1px solid var(--line-strong);background:var(--surface);padding:6px 12px;border-radius:999px;font-size:14px;font-weight:700;color:var(--ink-muted);cursor:pointer}
+.langbar button.active{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* ---- Components ---- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
+.card>:first-child{margin-top:0}.card>:last-child{margin-bottom:0}
+.card.soft{background:var(--brand-soft);border-color:transparent;box-shadow:none}
+.card.warm{background:var(--warn-soft);border-color:transparent;box-shadow:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--tap);border:2px solid var(--brand);background:var(--brand);color:#fff;padding:12px 22px;border-radius:var(--radius-sm);font-weight:700;font-size:18px;line-height:1.3;cursor:pointer;text-align:center}
+.btn.secondary{background:var(--surface);color:var(--brand-dark)}
+.btn.accent{background:var(--accent);border-color:var(--accent)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--brand-dark)}
+.btn.block{width:100%}.btn.lg{font-size:19px;padding:16px 24px;min-height:56px}.btn.small{font-size:15px;padding:8px 14px;min-height:44px}
+.btn:disabled{opacity:.45;cursor:not-allowed}.btn:active:not(:disabled){transform:translateY(1px)}
+.stepnav{position:sticky;bottom:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:auto calc(-1*var(--pad)) calc(-1*(48px + env(safe-area-inset-bottom,0px)));padding:12px var(--pad) calc(12px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line)}
+.stepnav .btn{padding:14px 18px;flex:1 1 auto;max-width:62%}.stepnav .btn.ghost{flex:0 1 auto}
+.bigchoice{display:grid;gap:12px;margin:16px 0}
+.bigchoice button{display:block;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:var(--radius);padding:20px;cursor:pointer;box-shadow:var(--shadow);width:100%;color:var(--ink)}
+.bigchoice .icon{font-size:32px;line-height:1;margin-bottom:8px}
+.bigchoice .title{font-size:21px;font-weight:800;line-height:1.25}
+.bigchoice .sub{color:var(--ink-muted);font-size:16px;line-height:1.4;margin-top:4px}
+.bigchoice button.primary{background:var(--brand);border-color:var(--brand);color:#fff}.bigchoice button.primary .sub{color:#dcece2}
+.bigchoice button.accent{background:var(--accent);border-color:var(--accent);color:#fff}.bigchoice button.accent .sub{color:#f0f8f5}
+.bigchoice button.sel{border-color:var(--brand);background:var(--brand-soft)}
+.bigchoice.inline button{display:flex;align-items:center;gap:16px;padding:16px 20px}.bigchoice.inline .icon{font-size:30px;margin:0;flex:none}.bigchoice.inline .title{font-size:18px}.bigchoice.inline .sub{font-size:14px}
+.quick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.quick button{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:84px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center;box-shadow:var(--shadow);cursor:pointer;color:var(--ink)}
+.quick .icon{font-size:26px;line-height:1}.quick .title{font-weight:700;font-size:15px;line-height:1.25;margin-top:4px}.quick .sub{color:var(--ink-muted);font-size:13px}
+.yesno{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.yesno button{min-height:72px;padding:20px 12px;font-size:22px;font-weight:800;border-radius:var(--radius);border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.yesno button.sel{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-dark)}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px;margin-top:12px}
+.chips.tight{grid-template-columns:repeat(auto-fill,minmax(64px,1fr))}
+.chips button{min-height:var(--tap);padding:12px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;font-size:16px;line-height:1.3;cursor:pointer;text-align:center}
+.chips button .icon{display:block;font-size:24px;line-height:1;margin-bottom:4px}
+.chips button.sel{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-dark)}
+.chips button.all{grid-column:1/-1}
+label.field,.field{display:block;margin-top:12px;font-weight:700;font-size:16px;line-height:1.4}
+input[type=text],input[type=tel],input[type=date],input[type=password],select,textarea{width:100%;min-height:var(--tap);padding:12px 14px;border:2px solid var(--line-strong);border-radius:var(--radius-sm);background:#fff;margin-top:8px;font-size:18px;line-height:1.4}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--brand-dark) 50%),linear-gradient(135deg,var(--brand-dark) 50%,transparent 50%);background-position:calc(100% - 20px) calc(50% + 2px),calc(100% - 14px) calc(50% + 2px);background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:40px}
+label.check{display:flex;gap:12px;align-items:flex-start;margin-top:12px;min-height:44px;font-weight:600;font-size:16px;line-height:1.45;cursor:pointer}
+label.check input{width:26px;height:26px;margin-top:2px;flex:none;accent-color:var(--brand)}
+.note{display:flex;gap:8px;align-items:flex-start;margin-top:12px;padding:12px 16px;background:var(--surface-2);border-left:4px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:15px;line-height:1.5;color:var(--ink-muted)}
+.progress{height:8px;background:var(--line);border-radius:999px;overflow:hidden;margin:8px 0 16px}
+.progress div{height:100%;background:var(--brand);transition:width .3s}
+.resource{border-top:1px solid var(--line);padding:12px 0}.resource:first-of-type{border-top:0;padding-top:0}.resource:last-of-type{padding-bottom:0}
+.resource .name{font-weight:800;font-size:18px;line-height:1.3}
+.resource .call{display:inline-flex;align-items:center;gap:8px;min-height:56px;margin-top:8px;background:var(--brand);color:#fff;padding:12px 20px;border-radius:var(--radius-sm);font-weight:800;font-size:19px}
+.script{background:var(--bg);border-left:4px solid var(--brand);padding:12px 16px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-style:italic;margin-top:12px;font-size:16px;line-height:1.5}
+.casenum{font-size:26px;font-weight:800;letter-spacing:.05em;line-height:1.2;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:13px;font-weight:700;line-height:1.4;padding:5px 10px;border-radius:999px;background:var(--brand-soft);color:var(--brand-dark);margin-right:4px;margin-top:4px}
+.tag.warm{background:var(--warn-soft);color:var(--warn)}.tag.gray{background:var(--gray-tag);color:var(--ink-muted)}
+.emergency{font-size:14px;color:var(--ink-muted);text-align:center;margin-top:32px}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(34px,10vw,46px);letter-spacing:.16em;font-weight:800;text-align:center;padding:16px;background:var(--surface);border:3px dashed var(--brand);border-radius:var(--radius);color:var(--brand-dark)}
+.status-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}
+.status-steps div{text-align:center;font-size:13px;line-height:1.25;font-weight:700;padding:8px 4px;border-radius:10px;background:var(--gray-tag);color:var(--ink-muted)}
+.status-steps div.done{background:var(--brand);color:#fff}
+.pickup-box{margin-top:12px;background:#fff;border:2px solid var(--brand);border-radius:var(--radius-sm);padding:12px 16px}
+.pickup-code{font-size:clamp(30px,9vw,38px);font-weight:900;letter-spacing:.12em;color:var(--brand-dark)}
+.docsteps{display:grid;gap:12px}
+.sigpad{position:relative;margin-top:8px}
+.sigpad canvas{width:100%;height:160px;background:#fff;border:2px dashed var(--brand);border-radius:var(--radius-sm);touch-action:none;display:block}
+.sigpad-hint{position:absolute;top:50%;left:0;right:0;text-align:center;transform:translateY(-50%);color:var(--ink-muted);pointer-events:none;font-size:18px}
+.sigpad-clear{position:absolute;right:8px;bottom:8px;background:var(--surface)}
+.msg{cursor:pointer}.msg.unread{border-left:5px solid var(--brand)}
+.prow{display:grid;grid-template-columns:1fr;gap:0;padding:6px 0;border-bottom:1px dashed var(--line);font-size:15px;line-height:1.45}
+.prow span{color:var(--ink-muted)}
+@media(min-width:560px){.prow{grid-template-columns:minmax(120px,210px) 1fr;gap:8px}}
+.psheet{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;margin-top:12px}
+.sigimg{max-width:320px;height:auto;border-bottom:2px solid var(--ink);margin-top:8px;display:block}
+.demo-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);padding:3px 8px;border-radius:6px;vertical-align:middle}
+.photo-thumb{width:96px;height:72px;object-fit:cover;border-radius:10px;border:2px solid var(--line)}
+
+/* ---- Splash ---- */
+.splash{flex:1;min-height:100%;display:grid;place-items:center;padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));cursor:pointer;background:linear-gradient(160deg,#24553f 0%,#2f6b4f 45%,#417a61 100%);color:#fff;text-align:center}
+.splash-inner{max-width:640px}
+.splash-logo svg{width:60px;height:150px}
+.splash-brand{font-size:clamp(24px,1.4rem + 2vw,30px);font-weight:800;letter-spacing:-.01em;margin-bottom:16px}
+.splash-fade{opacity:0;transition:opacity .6s ease}.splash-fade.in{opacity:1}
+.splash h1{color:#fff;font-size:clamp(24px,1.3rem + 2.2vw,30px);margin:0 0 12px}
+.splash-list{list-style:none;padding:0;margin:4px auto 24px;max-width:540px;display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;text-align:left}
+.splash-list li{color:#f0f8f4;font-size:17px;line-height:1.4;padding-left:20px;position:relative}
+.splash-list li::before{content:"•";position:absolute;left:2px;color:#fff;font-weight:800}
+@media(max-width:460px){.splash-list{grid-template-columns:1fr}}
+.splash-tap{display:inline-flex;align-items:center;min-height:var(--tap);background:rgba(13,40,28,.3);border:1px solid rgba(255,255,255,.5);padding:12px 22px;border-radius:999px;font-weight:700;animation:pulse 2.2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.splash-dots{margin-top:24px;display:flex;gap:6px;justify-content:center}
+.splash-dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3)}.splash-dots span.on{background:#fff}
+.langgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:12px}
+.langgrid button{min-height:72px;padding:12px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;text-align:center;box-shadow:var(--shadow)}
+.langgrid .native{display:block;font-size:19px;font-weight:800;line-height:1.3}.langgrid .english{display:block;font-size:13px;color:var(--ink-muted);margin-top:2px}
+
+/* ---- Kiosk mode ---- */
+.kiosk{font-size:clamp(18px,1rem + .6vw,22px)}
+.kiosk h1{font-size:clamp(28px,1.6rem + 3vw,44px)}
+.kiosk .bigchoice .title{font-size:clamp(21px,1.1rem + 1.4vw,28px)}
+.kiosk .btn{min-height:64px}
+.kiosk .chips button{min-height:64px;font-size:clamp(17px,1rem + .3vw,20px)}
+
+/* ---- Add-to-home-screen helper ---- */
+.a2hs{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:#fff;border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.4;display:flex;gap:10px;align-items:flex-start;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.a2hs strong{display:block;font-size:15px}
+.a2hs button{margin-left:auto;background:transparent;border:0;color:#fff;font-size:20px;line-height:1;padding:0 4px;cursor:pointer;flex:none}
+@media(prefers-reduced-motion:reduce){.splash-tap{animation:none}*{transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="hh-mark" viewBox="420 380 414 520"><path fill="currentColor" fill-rule="evenodd" d="M549.7 1253.2 C549.3 1252.5 549.6 1246.5 552.0 1202.0 C552.5 1191.3 554.1 1161.3 555.5 1135.5 C560.7 1038.4 563.1 994.5 565.1 962.0 C566.2 943.6 567.4 915.0 567.7 898.5 L568.3 868.5 L559.9 868.5 C553.0 868.4 550.5 867.9 546.0 865.8 C537.8 862.0 532.6 856.9 528.6 849.0 C524.2 840.1 522.6 832.6 523.2 822.8 L523.7 815.0 L519.1 813.5 C508.9 810.1 498.7 799.4 494.8 788.0 C492.4 781.0 491.7 767.7 493.3 757.3 L494.1 752.1 L489.9 749.9 C483.9 746.9 476.6 739.0 473.1 731.7 C467.7 720.5 466.9 708.2 470.6 692.0 C472.1 685.6 472.1 685.5 469.8 684.0 C465.7 681.5 458.8 673.6 456.3 668.6 C452.7 661.6 450.7 650.8 451.4 643.0 C453.1 625.4 463.8 584.0 475.6 549.0 C485.7 519.3 509.3 460.4 524.7 426.7 C529.0 417.2 529.1 416.8 528.5 409.2 C526.9 387.8 519.6 295.4 516.5 258.0 C514.6 234.6 512.4 206.1 511.5 194.5 C510.6 182.9 508.9 160.0 507.5 143.5 C506.2 127.0 504.6 107.2 504.0 99.5 C503.4 91.8 501.4 67.0 499.5 44.3 C497.6 21.7 496.0 2.4 496.0 1.6 C496.0 0.1 497.3 -0.0 505.7 0.2 L515.5 0.5 L517.2 21.0 C518.1 32.3 519.3 47.6 519.9 55.0 C521.0 69.7 525.2 122.9 530.0 182.5 C531.6 203.4 534.8 242.8 537.0 270.0 C549.6 425.6 549.0 416.2 547.9 421.1 C547.4 423.3 546.1 426.8 545.1 428.8 C542.2 434.5 523.1 479.3 514.5 500.5 C493.6 552.1 481.9 588.6 473.9 627.4 C470.3 644.8 470.2 651.7 473.4 658.5 C477.5 667.5 478.1 667.3 483.0 655.2 C489.9 638.0 502.2 613.9 504.9 612.1 C506.3 611.3 509.1 610.5 511.3 610.5 C514.3 610.5 515.7 611.2 517.6 613.3 C521.2 617.6 520.7 621.0 514.1 633.9 C506.1 649.7 500.7 662.1 495.9 675.9 C487.5 700.1 486.0 713.1 490.4 722.6 C492.5 727.1 497.0 732.0 499.0 732.0 C499.4 732.0 501.6 727.2 504.0 721.2 C511.7 701.9 524.2 678.3 538.5 656.5 C546.7 643.9 548.4 642.1 553.2 641.3 C556.1 640.9 557.3 641.3 559.9 643.6 C565.6 648.9 565.2 650.8 555.5 665.9 C532.1 702.1 516.6 736.2 512.4 761.4 C509.9 776.2 512.5 786.5 520.3 792.1 C526.9 796.9 528.1 796.3 531.1 786.7 C540.3 758.0 565.3 716.1 591.9 685.0 C613.4 659.9 617.8 656.3 623.9 659.4 C629.8 662.5 631.6 668.1 628.2 673.2 C627.3 674.6 622.1 680.6 616.7 686.5 C573.6 733.7 543.1 790.9 542.6 825.5 C542.5 833.4 542.8 835.0 545.0 838.9 C548.7 845.5 554.0 849.3 559.2 849.3 C566.0 849.3 569.5 846.9 571.0 841.3 C575.8 823.7 590.3 793.5 603.4 773.8 C619.2 750.1 642.5 724.1 668.4 701.4 C680.6 690.7 681.6 689.6 685.2 681.9 C687.3 677.4 689.0 672.7 689.0 671.3 C689.0 666.8 685.7 662.5 669.0 645.5 C647.5 623.6 641.1 615.0 633.1 598.0 C627.3 585.6 625.7 578.4 626.2 567.0 C626.7 555.9 629.2 549.7 635.9 543.7 C641.7 538.5 645.6 536.8 653.0 536.2 C660.9 535.7 666.1 537.0 672.2 541.0 C678.7 545.3 725.8 583.2 736.0 592.3 C746.0 601.3 744.9 602.3 748.7 581.0 C751.1 568.1 751.4 564.0 751.5 543.5 C751.5 523.0 751.3 519.4 749.2 510.1 C742.5 480.1 731.3 460.9 697.6 420.9 C693.3 415.8 689.1 410.1 688.3 408.2 C686.5 403.8 685.3 389.5 684.0 356.0 C683.1 333.6 683.2 323.2 684.5 300.0 C685.3 284.3 687.1 249.0 688.5 221.5 C691.1 170.5 695.9 78.2 698.5 29.5 C699.3 14.6 700.0 1.9 700.0 1.2 C700.0 0.3 702.6 0.0 709.5 0.0 L719.0 0.0 L719.0 6.8 C719.0 10.5 718.5 21.6 718.0 31.5 C716.5 57.4 712.3 136.8 710.5 169.5 C709.7 184.9 708.3 211.4 707.5 228.5 C706.7 245.6 705.3 273.0 704.4 289.5 C702.7 320.2 703.0 361.8 704.9 388.3 C706.0 401.7 705.1 400.1 720.4 417.6 C742.7 443.2 759.1 471.4 765.5 495.2 C770.3 513.1 771.4 521.3 771.4 541.5 C771.4 565.1 769.4 579.7 761.3 614.6 C761.0 616.0 762.1 618.1 765.0 621.5 C780.5 639.5 790.5 661.9 794.1 687.2 C795.7 699.0 794.7 726.0 792.0 741.5 C786.1 775.0 777.1 800.7 757.5 840.0 C745.6 863.9 745.6 863.9 746.3 885.0 C746.9 901.4 748.7 939.8 751.0 982.0 C751.5 992.2 752.7 1013.8 753.5 1030.0 C755.1 1061.0 759.3 1140.2 761.0 1170.0 C761.5 1179.6 762.6 1200.1 763.5 1215.5 C764.3 1230.9 765.1 1245.8 765.2 1248.5 L765.5 1253.5 L755.8 1253.8 L746.0 1254.1 L746.0 1250.8 C746.0 1249.0 745.1 1231.8 744.0 1212.5 C740.3 1147.5 739.1 1124.6 737.5 1094.0 C735.7 1057.7 732.4 992.7 731.0 967.5 C730.5 957.6 729.6 940.7 729.0 930.0 C728.5 919.3 727.5 901.4 727.0 890.3 C725.5 861.5 725.4 861.7 743.3 825.0 C748.5 814.3 754.6 800.9 756.9 795.3 C770.8 760.3 777.7 722.0 775.0 694.6 C770.7 651.2 753.5 629.0 679.7 571.3 C660.2 556.0 660.2 556.0 655.7 556.0 C650.3 556.0 648.4 557.3 646.4 562.5 C643.0 571.4 646.6 584.6 656.8 601.0 C663.1 611.1 669.6 618.8 687.1 636.5 C699.5 649.1 702.4 652.7 705.2 658.5 C707.9 664.2 708.5 666.7 708.5 672.0 C708.5 678.0 707.9 679.6 701.8 692.0 C698.2 699.4 694.0 708.9 692.5 713.0 C689.2 722.3 685.3 739.2 684.4 748.4 C683.8 753.9 683.1 755.9 681.0 758.4 C677.8 761.9 672.9 762.4 668.6 759.6 C663.6 756.4 663.1 750.9 666.4 735.2 C667.1 731.8 667.4 729.0 667.1 729.0 C666.2 729.0 652.4 743.3 643.9 753.0 C618.1 782.5 598.8 815.9 588.9 848.0 C586.7 855.2 586.6 856.7 586.9 885.0 C587.0 903.0 586.5 924.5 585.6 940.0 C583.6 973.9 579.8 1042.2 578.5 1069.0 C576.9 1101.2 572.2 1190.1 569.4 1242.2 L568.7 1254.0 L559.4 1254.0 C554.3 1254.0 549.9 1253.7 549.7 1253.2 Z"/></symbol><symbol id="hh-full" viewBox="440 0 374 1254"><path fill="currentColor" fill-rule="evenodd" d="M549.7 1253.2 C549.3 1252.5 549.6 1246.5 552.0 1202.0 C552.5 1191.3 554.1 1161.3 555.5 1135.5 C560.7 1038.4 563.1 994.5 565.1 962.0 C566.2 943.6 567.4 915.0 567.7 898.5 L568.3 868.5 L559.9 868.5 C553.0 868.4 550.5 867.9 546.0 865.8 C537.8 862.0 532.6 856.9 528.6 849.0 C524.2 840.1 522.6 832.6 523.2 822.8 L523.7 815.0 L519.1 813.5 C508.9 810.1 498.7 799.4 494.8 788.0 C492.4 781.0 491.7 767.7 493.3 757.3 L494.1 752.1 L489.9 749.9 C483.9 746.9 476.6 739.0 473.1 731.7 C467.7 720.5 466.9 708.2 470.6 692.0 C472.1 685.6 472.1 685.5 469.8 684.0 C465.7 681.5 458.8 673.6 456.3 668.6 C452.7 661.6 450.7 650.8 451.4 643.0 C453.1 625.4 463.8 584.0 475.6 549.0 C485.7 519.3 509.3 460.4 524.7 426.7 C529.0 417.2 529.1 416.8 528.5 409.2 C526.9 387.8 519.6 295.4 516.5 258.0 C514.6 234.6 512.4 206.1 511.5 194.5 C510.6 182.9 508.9 160.0 507.5 143.5 C506.2 127.0 504.6 107.2 504.0 99.5 C503.4 91.8 501.4 67.0 499.5 44.3 C497.6 21.7 496.0 2.4 496.0 1.6 C496.0 0.1 497.3 -0.0 505.7 0.2 L515.5 0.5 L517.2 21.0 C518.1 32.3 519.3 47.6 519.9 55.0 C521.0 69.7 525.2 122.9 530.0 182.5 C531.6 203.4 534.8 242.8 537.0 270.0 C549.6 425.6 549.0 416.2 547.9 421.1 C547.4 423.3 546.1 426.8 545.1 428.8 C542.2 434.5 523.1 479.3 514.5 500.5 C493.6 552.1 481.9 588.6 473.9 627.4 C470.3 644.8 470.2 651.7 473.4 658.5 C477.5 667.5 478.1 667.3 483.0 655.2 C489.9 638.0 502.2 613.9 504.9 612.1 C506.3 611.3 509.1 610.5 511.3 610.5 C514.3 610.5 515.7 611.2 517.6 613.3 C521.2 617.6 520.7 621.0 514.1 633.9 C506.1 649.7 500.7 662.1 495.9 675.9 C487.5 700.1 486.0 713.1 490.4 722.6 C492.5 727.1 497.0 732.0 499.0 732.0 C499.4 732.0 501.6 727.2 504.0 721.2 C511.7 701.9 524.2 678.3 538.5 656.5 C546.7 643.9 548.4 642.1 553.2 641.3 C556.1 640.9 557.3 641.3 559.9 643.6 C565.6 648.9 565.2 650.8 555.5 665.9 C532.1 702.1 516.6 736.2 512.4 761.4 C509.9 776.2 512.5 786.5 520.3 792.1 C526.9 796.9 528.1 796.3 531.1 786.7 C540.3 758.0 565.3 716.1 591.9 685.0 C613.4 659.9 617.8 656.3 623.9 659.4 C629.8 662.5 631.6 668.1 628.2 673.2 C627.3 674.6 622.1 680.6 616.7 686.5 C573.6 733.7 543.1 790.9 542.6 825.5 C542.5 833.4 542.8 835.0 545.0 838.9 C548.7 845.5 554.0 849.3 559.2 849.3 C566.0 849.3 569.5 846.9 571.0 841.3 C575.8 823.7 590.3 793.5 603.4 773.8 C619.2 750.1 642.5 724.1 668.4 701.4 C680.6 690.7 681.6 689.6 685.2 681.9 C687.3 677.4 689.0 672.7 689.0 671.3 C689.0 666.8 685.7 662.5 669.0 645.5 C647.5 623.6 641.1 615.0 633.1 598.0 C627.3 585.6 625.7 578.4 626.2 567.0 C626.7 555.9 629.2 549.7 635.9 543.7 C641.7 538.5 645.6 536.8 653.0 536.2 C660.9 535.7 666.1 537.0 672.2 541.0 C678.7 545.3 725.8 583.2 736.0 592.3 C746.0 601.3 744.9 602.3 748.7 581.0 C751.1 568.1 751.4 564.0 751.5 543.5 C751.5 523.0 751.3 519.4 749.2 510.1 C742.5 480.1 731.3 460.9 697.6 420.9 C693.3 415.8 689.1 410.1 688.3 408.2 C686.5 403.8 685.3 389.5 684.0 356.0 C683.1 333.6 683.2 323.2 684.5 300.0 C685.3 284.3 687.1 249.0 688.5 221.5 C691.1 170.5 695.9 78.2 698.5 29.5 C699.3 14.6 700.0 1.9 700.0 1.2 C700.0 0.3 702.6 0.0 709.5 0.0 L719.0 0.0 L719.0 6.8 C719.0 10.5 718.5 21.6 718.0 31.5 C716.5 57.4 712.3 136.8 710.5 169.5 C709.7 184.9 708.3 211.4 707.5 228.5 C706.7 245.6 705.3 273.0 704.4 289.5 C702.7 320.2 703.0 361.8 704.9 388.3 C706.0 401.7 705.1 400.1 720.4 417.6 C742.7 443.2 759.1 471.4 765.5 495.2 C770.3 513.1 771.4 521.3 771.4 541.5 C771.4 565.1 769.4 579.7 761.3 614.6 C761.0 616.0 762.1 618.1 765.0 621.5 C780.5 639.5 790.5 661.9 794.1 687.2 C795.7 699.0 794.7 726.0 792.0 741.5 C786.1 775.0 777.1 800.7 757.5 840.0 C745.6 863.9 745.6 863.9 746.3 885.0 C746.9 901.4 748.7 939.8 751.0 982.0 C751.5 992.2 752.7 1013.8 753.5 1030.0 C755.1 1061.0 759.3 1140.2 761.0 1170.0 C761.5 1179.6 762.6 1200.1 763.5 1215.5 C764.3 1230.9 765.1 1245.8 765.2 1248.5 L765.5 1253.5 L755.8 1253.8 L746.0 1254.1 L746.0 1250.8 C746.0 1249.0 745.1 1231.8 744.0 1212.5 C740.3 1147.5 739.1 1124.6 737.5 1094.0 C735.7 1057.7 732.4 992.7 731.0 967.5 C730.5 957.6 729.6 940.7 729.0 930.0 C728.5 919.3 727.5 901.4 727.0 890.3 C725.5 861.5 725.4 861.7 743.3 825.0 C748.5 814.3 754.6 800.9 756.9 795.3 C770.8 760.3 777.7 722.0 775.0 694.6 C770.7 651.2 753.5 629.0 679.7 571.3 C660.2 556.0 660.2 556.0 655.7 556.0 C650.3 556.0 648.4 557.3 646.4 562.5 C643.0 571.4 646.6 584.6 656.8 601.0 C663.1 611.1 669.6 618.8 687.1 636.5 C699.5 649.1 702.4 652.7 705.2 658.5 C707.9 664.2 708.5 666.7 708.5 672.0 C708.5 678.0 707.9 679.6 701.8 692.0 C698.2 699.4 694.0 708.9 692.5 713.0 C689.2 722.3 685.3 739.2 684.4 748.4 C683.8 753.9 683.1 755.9 681.0 758.4 C677.8 761.9 672.9 762.4 668.6 759.6 C663.6 756.4 663.1 750.9 666.4 735.2 C667.1 731.8 667.4 729.0 667.1 729.0 C666.2 729.0 652.4 743.3 643.9 753.0 C618.1 782.5 598.8 815.9 588.9 848.0 C586.7 855.2 586.6 856.7 586.9 885.0 C587.0 903.0 586.5 924.5 585.6 940.0 C583.6 973.9 579.8 1042.2 578.5 1069.0 C576.9 1101.2 572.2 1190.1 569.4 1242.2 L568.7 1254.0 L559.4 1254.0 C554.3 1254.0 549.9 1253.7 549.7 1253.2 Z"/></symbol></defs></svg>
+
+<div id="app">
+  <!-- Splash: the front page. Alternates English / Spanish until tapped. -->
+  <section class="screen on" id="s-splash">
+    <div class="splash" id="splash" role="button" tabindex="0" aria-label="Tap anywhere to begin">
+      <div class="splash-inner">
+        <div class="splash-logo"><svg><use href="#hh-full"/></svg></div>
+        <div class="splash-brand">Helping Hand</div>
+        <div class="splash-fade in" id="splash-fade">
+          <h1 id="splash-tag"></h1>
+          <ul class="splash-list" id="splash-list"></ul>
+          <div class="splash-tap" id="splash-tap"></div>
+        </div>
+        <div class="splash-dots" aria-hidden="true"><span class="on" id="dot0"></span><span id="dot1"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Everything below the splash shares the header -->
+  <section class="screen" id="s-main">
+    <header class="top">
+      <div class="headinner">
+        <button class="brand" data-go="home"><span class="logo-box"><svg><use href="#hh-mark"/></svg></span><span>Helping Hand</span><span class="tag gray" id="kiosk-tag" hidden>NM-108</span></button>
+        <div class="row nowrap" style="gap:8px">
+          <div class="langbar" id="langbar-top"></div>
+          <button class="menubtn" id="menubtn" aria-label="Menu" aria-expanded="false">☰</button>
+        </div>
+      </div>
+      <nav class="menu" id="menu">
+        <button data-go="home">🏠 <span data-t="home"></span></button>
+        <button data-go="docs">🪪 <span data-t="docsTitle"></span></button>
+        <button data-go="inbox">📬 <span data-t="inbox"></span></button>
+        <button data-go="kiosk">🖥️ <span data-t="kiosk"></span> <span class="small muted">(NM-108)</span></button>
+        <button data-go="jobs">💼 <span data-t="jobs"></span></button>
+        <div class="staff">Staff</div>
+        <button data-go="navigator">🧭 <span data-t="navTitle"></span></button>
+        <button data-go="admin">📊 Admin · <span data-t="report"></span></button>
+      </nav>
+    </header>
+    <main class="container" id="view"></main>
+  </section>
+</div>
+
+<div class="a2hs" id="a2hs" hidden>
+  <div>📱 <strong id="a2hs-title"></strong><span id="a2hs-body"></span></div>
+  <button id="a2hs-x" aria-label="Dismiss">×</button>
+</div>
+
+<script>
+// ---------- Strings (EN complete; ES / HT cover the demo path and fall back to EN) ----------
+const EN = {
+  home:"Home", jobs:"Jobs", kiosk:"Kiosk", inbox:"Inbox", report:"Report for partners",
+  tagline:"Real help, in your language, in your neighborhood.",
+  homeQuestion:"Who are you here for today?",
+  helpingSomeone:"I'm helping someone", helpingSomeoneSub:"Get a person you met the right help",
+  helpingMyself:"I need help", helpingMyselfSub:"Housing, food, ID, a job, and more",
+  docsHome:"Get my documents", docsHomeSub:"ID, Social Security card, birth certificate, EBT & Medicaid — no phone calls, no paperwork",
+  jobsSub:"Get hired fast", kioskSub:"Food & clothes pickup", helpers:"Helpers", helpersSub:"Volunteer nearby",
+  askLanguage:"What language do you speak?",
+  yes:"Yes", no:"No", next:"Next", back:"Back", optional:"optional", preferNot:"Prefer not to say", stepOf:"Step {a} of {b}",
+  submit:"Get my help plan", startOver:"Start over", emergency:"If someone is in danger right now, call 911.",
+  privacyNote:"We only share what you tell us to share. You can stop at any time.",
+  // intake
+  qHousehold:"Is this for you alone, or for a family?", qHouseholdSomeone:"Is this one person, or a family?",
+  qHouseholdHint:"Families with children get their own track and their own housing programs.",
+  hhSingle:"Just me", hhSingleSomeone:"One person", hhSingleSub:"One adult",
+  hhFamily:"My family", hhFamilySomeone:"A family or group", hhFamilySub:"Adults with children, a couple, or relatives together",
+  qRegistrant:"Who is filling this out?", qRegistrantHint:"So the outreach worker knows who to call back.", yourName:"Your name", relationship:"I am their",
+  rel_friend:"Friend", rel_neighbor:"Neighbor", rel_family:"Family member", rel_caseworker:"Case worker", rel_volunteer:"Volunteer / helper", rel_other:"Other",
+  qName:"What should we call you?", qNameSomeone:"What is the person's first name?", qNameHint:"First name or nickname is fine.",
+  qSleep:"Do you have a safe place to sleep tonight?", qSleepSomeone:"Do they have a safe place to sleep tonight?",
+  urgentTitle:"Let's get an outreach worker to you",
+  urgentBody:"You do not need to know exactly where you sleep. A street outreach team can meet you where you stay and start on real housing, not a shelter.",
+  urgentBodySomeone:"You do not need to know exactly where they sleep. A street outreach team can meet them where they stay and start on real housing, not a shelter.",
+  qArea:"What area do you stay in?", qAreaSomeone:"What area do they usually stay in?", qAreaHint:"A neighborhood, cross street, or landmark is enough.",
+  qLandmark:"Cross street or landmark", qLandmarkHint:"Example: near the Aldi on NE 108th St",
+  qHomelessDuration:"How long have you been without a stable place?", qHomelessDurationSomeone:"How long have they been without a stable place?",
+  hd_first:"This is the first time, less than a month", hd_months:"A few months", hd_year:"A year or more", hd_repeat:"Many times over the years",
+  qDanger:"Is anyone hurting you or making you afraid right now?", qDangerSomeone:"Is anyone hurting them or making them afraid right now?",
+  qDangerHint:"You can skip this. It only changes who we connect you with.",
+  dangerNow:"You can get safe housing separate from everything else.", dangerBody:"Free, confidential, 24/7. Call or text START to 88788.",
+  qDocuments:"Which papers do you have?", qDocumentsSomeone:"Which papers do they have?",
+  qDocumentsHint:"No papers is normal. We will help get them, and it changes the order we do things in.",
+  qId:"Do you have a government ID?", qIdSomeone:"Do they have a government ID?",
+  qSsn:"Social Security card (or you know the number)?", qSsnSomeone:"Social Security card (or they know the number)?",
+  qBirthCert:"Birth certificate?", qPhone:"Do you have a phone?", qPhoneSomeone:"Do they have a phone?",
+  qIncome:"Is any money coming in?", qIncomeHint:"This decides which benefits you can get, not whether you get help.",
+  inc_none:"No income", inc_job:"A job or day work", inc_ssi:"SSI / SSDI / Social Security", inc_other:"Something else",
+  qSnap:"Getting SNAP / EBT food benefits now?", qMedicaid:"On Medicaid or other health insurance now?",
+  qHealth:"A few health questions", qHealthHint:"These open doors to disability money, veteran housing, and treatment. Skip anything you want.",
+  qDisability:"A disability or ongoing condition that needs care?", qVeteran:"Ever served in the U.S. military?",
+  qRecovery:"Would you like support with alcohol or drugs?", qRecoverySomeone:"Would they like support with alcohol or drugs?",
+  qNeeds:"What do you need help with?", qNeedsSomeone:"What do they need help with?", qNeedsHintPre:"We checked what you told us. Add or remove anything.", allOfAbove:"All of the above",
+  qContact:"How can a helper reach you?", qContactSomeone:"How can a helper reach you (the person helping)?",
+  qContactHint:"Phone or email. If there is no phone, tell us when and where you can be found.", qNotes:"Anything else we should know?",
+  need_housing:"Housing", need_id:"ID", need_ssn:"Social Security card", need_food:"Food", need_clothes:"Clothes", need_job:"A job", need_healthcare:"Healthcare",
+  need_benefits:"EBT / food & cash benefits", need_disability:"Disability (SSI / SSDI)", need_documents:"Documents & papers", need_addiction:"Addiction support",
+  need_phone:"A phone", need_family:"Family housing & support", need_veterans:"Veteran services", need_safety:"Safety", need_general:"24/7 lines",
+  // plan
+  planTitle:"Your help plan", planTitleSomeone:"Help plan for {name}",
+  planIntro:"Here is who to call for each thing you need, and what to say. A helper can also walk through this with you in person.",
+  yourNumber:"Your case number", showThis:"Show this at any kiosk or to any helper.",
+  outreachRequested:"Outreach request saved. Call the helpline below to make sure it is opened today.",
+  referralNote:"Pilot: this is where a referral into the Trust's outreach system would fire.",
+  getUpdatesTitle:"Get updates without a phone", getUpdatesBody:"Make a free account with just a name and a 6-digit PIN. Housing updates, job replies, and helper messages will wait for you in the app or at any kiosk.",
+  updatesOn:"Updates are on", updatesOnBody:"This case is saved to your account. Check your inbox at any kiosk with your name and PIN.",
+  docsPlanCard:"We can get your ID, Social Security card, birth certificate and benefits started right now.", docsStart:"Start my documents",
+  findHelper:"Match me with a helper nearby", findHelperSub:"Someone in your area who can meet you in person and help with calls, paperwork, and rides.",
+  foodClothesNow:"Need food or clothes right now?", foodClothesNowSub:"Request a pickup at the nearest kiosk. It is packed at our warehouse and delivered in about 20 minutes.",
+  requestPickup:"Request a pickup", seeJobs:"See jobs hiring now", call:"Call", whatToSay:"What to say", hours:"Hours",
+  // account
+  signIn:"Sign in", signOut:"Sign out", signInIntro:"No email or phone needed. Pick a name and a 6-digit PIN. That is your account.",
+  username:"Your name (one word)", pin:"6-digit PIN", pinHint:"Pick 6 numbers you will remember. Do not share them.", needAccount:"New here? Create an account",
+  create:"Create account", staffEmail:"Staff: sign in with email instead", signedInAs:"Signed in as {name}", doneSignOut:"Done (sign out)",
+  // documents
+  docsTitle:"Document Center", docsIntro:"Answer once. We fill out the government forms for you, a Helping Hand navigator sends them in, and your documents come back to a kiosk near you. You never have to call anyone.",
+  docsSignIn:"Sign in or make an account so we can keep your documents safe and tell you when they arrive.",
+  docsWhich:"What do you need?", docsWhichSub:"Pick everything that applies. We handle the order they need to go in.",
+  doc_ssn_card:"Social Security card", doc_ssn_card_sub:"Replacement card. Free. Needed for work and benefits.",
+  doc_birth_cert:"Birth certificate", doc_birth_cert_sub:"A certified copy from the state where you were born. Needed to get an ID.",
+  doc_fl_id:"Florida ID card", doc_fl_id_sub:"State ID. Free with a homeless-verification letter. One short in-person visit — a navigator goes with you.",
+  doc_benefits:"EBT, Medicaid & cash assistance", doc_benefits_sub:"Food (SNAP), health coverage and cash help through Florida ACCESS.",
+  docsAbout:"About you", docsAboutSub:"Use the name on your birth certificate, even if you go by something else.",
+  legalFirst:"First name", legalMiddle:"Middle name", legalLast:"Last name", otherNames:"Other names you have used", dob:"Date of birth",
+  sex:"Sex on your birth certificate", sex_male:"Male", sex_female:"Female", sex_x:"X / other", birthPlace:"Where were you born?", birthCity:"City", birthState:"State", birthCountry:"Country",
+  docsParents:"Your parents", docsParentsSub:"Social Security and the birth-certificate office use this to find your record. It is okay to leave blank if you do not know.",
+  motherName:"Mother's full name", motherMaiden:"Mother's maiden name (name before marriage)", fatherName:"Father's full name",
+  docsSsn:"Social Security & citizenship", ssnKnown:"Do you know your Social Security number?", ssnLast4:"Last 4 digits (only if you know them)",
+  ssnFullLater:"You will give the full number to your navigator in person. Never type it into a kiosk.", usCitizen:"Are you a U.S. citizen?",
+  docsHave:"What do you have right now?", docsHaveSub:"Any paper with your name helps. Take a photo of anything you have — it stays private and only your navigator can see it.",
+  havePhotoId:"Any photo ID (even expired)", haveBirthCert:"Birth certificate", haveSsnCard:"Social Security card", haveOther:"Anything else (school record, medical card, mail with your name, pay stub…)",
+  photos:"Photos", addPhoto:"Add a photo", photoLabelShort:"What is it? (optional)", photoAdded:"Photo saved.",
+  docsReach:"How do we reach you?", docsReachSub:"Every update goes to your inbox in this app and at any kiosk. If you have a phone, you can add it too.",
+  phoneOptional:"Phone (optional)", bestWay:"Best way to reach you", reach_app:"Inbox in this app / kiosk", reach_helper:"Through my helper", reach_phone:"Phone",
+  pickupKiosk:"Where should your documents be delivered?", pickupKioskSub:"Your documents will be mailed to Helping Hand and brought to this kiosk. You will get a pickup code.",
+  docsConsent:"Permission & signature", docsConsentSub:"This lets a Helping Hand navigator send your applications and receive your mail. You can cancel any time.",
+  consentMail:"I authorize Helping Hand to receive mail for me at its address and to bring it to the kiosk I chose.",
+  consentRep:"I authorize a Helping Hand navigator to help me complete and submit applications to the Social Security Administration, the Florida Department of Health (Vital Statistics), FLHSMV and the Florida Department of Children and Families, and to speak with them about my applications.",
+  consentTruth:"The information I gave is true to the best of my knowledge.",
+  typedName:"Type your full name", signHere:"Sign with your finger", clearSig:"Clear", docsSubmit:"Send to my navigator",
+  docsStatusTitle:"Your documents", docsStatusIntro:"A navigator is on it. You will get a message here and at any kiosk every time something changes.",
+  docsCaseNumber:"Document case", docsMine:"My documents",
+  st_collecting:"Getting your information", st_ready:"Packet ready — navigator reviewing", st_submitted:"Sent to the government", st_appointment:"Appointment set — navigator will go with you",
+  st_mailed:"Mailed to Helping Hand", st_at_warehouse:"Arrived at Helping Hand", st_at_kiosk:"At the kiosk — ready to pick up", st_picked_up:"Picked up", st_issue:"Needs attention — check your inbox",
+  pickupCode:"Pickup code", pickupAt:"Pick up at", appointmentAt:"Appointment", rideRequest:"Need a ride? Request one",
+  // navigator
+  navTitle:"Navigator desk", navIntro:"Complete packets, ready to send. Open one to see the pre-filled forms and update each document as it moves.",
+  navFilterOpen:"Needs action", navFilterKiosk:"At kiosk", navFilterAll:"All", navOpen:"Open packet", navQueue:"Queue", navSubmittedOn:"Submitted", navUnassigned:"Unassigned", navAssigned:"Navigator",
+  navPrint:"Print packet", navFilledForms:"Filled forms", navFilledFormsSub:"The official forms, filled in from this packet. Open, check, print, and have the person sign.",
+  navFormSs5:"SSA form SS-5 — Application for a Social Security card", navFormBirth:"Florida DH 726 — Application for Florida birth record",
+  navFormId:"FLHSMV ID checklist + homeless-verification letter", navFormAccess:"Florida ACCESS application (SNAP, Medicaid, TCA) — Community Partner submission",
+  navSetStatus:"Update status", navKiosk:"Deliver to kiosk", navCode:"Pickup code", navSave:"Save update", navSaved:"Updated. The person has been notified.",
+  navFiles:"Photos from the person", navSigned:"Signed", navHousehold:"Linked intake", navLetter:"Homeless verification letter",
+  // kiosk
+  kioskTitle:"Welcome", kioskQuestion:"Do you need food or clothes?", kioskYes:"Yes, I need food or clothes", kioskHelp:"I need other help",
+  kioskInbox:"My inbox", kioskInboxSub:"Sign in with your name and PIN to see your updates", kioskStatus:"Check my pickup",
+  kioskFood:"Food", kioskClothes:"Clothes", kioskHygiene:"Hygiene kit", sizeTop:"Shirt size", sizeBottom:"Pants size", sizeShoes:"Shoe size", kioskPlace:"Order",
+  kioskCode:"Your pickup code", kioskArriving:"Being packed at the warehouse. Arriving at this kiosk in about {n} minutes.", kioskShowCode:"Show this code when the bag arrives.",
+  status_requested:"Received", status_packing:"Packing", status_en_route:"On the way", status_delivered:"At the kiosk", status_picked_up:"Picked up",
+  enterCode:"Enter your pickup code", check:"Check", notFound:"Code not found.", kioskInboxWarn:"Tap Done when you finish so the next person cannot see your messages.",
+  hubTitle:"Benefits, documents & healthcare", hubSub:"EBT, Medicaid, disability, government housing, birth certificate, ID",
+  // inbox
+  inboxIntro:"Updates about housing, jobs, pickups, and helpers come here. Read them in the app or at any kiosk.", inboxEmpty:"Nothing yet. Updates will show up here.",
+  // jobs
+  jobsTitle:"Jobs hiring now", jobsIntro:"Employers here know you may not have an ID, an address, or a phone yet. Look for the green tags.",
+  tagNoId:"No ID needed", tagNoAddress:"No address needed", tagSameDay:"Same-day pay", tagUrgent:"Urgently hiring", tagNoExp:"No experience or diploma needed", apply:"Apply", applied:"Applied — the employer will message your inbox",
+  jobsSearch:"Search: dishwasher, construction, cleaning…", jobsAll:"All jobs", jobsUrgentOnly:"Hiring this week", jobsNone:"No jobs match. Try another word or clear the filters.", jobsCount:"{n} jobs hiring now", jobsApplyNote:"One tap. The employer gets your name and your inbox; they reply here or at any kiosk.",
+  startsToday:"What starts for you today", startsTodaySub:"Not just numbers to call. Your answers already filled these in:",
+  st_outreach:"Outreach request to the Homeless Trust OAP team (housing, not a shelter)", st_ss5:"Social Security card application (SS-5), pre-filled", st_birth:"Birth certificate request (DH 726), pre-filled", st_flid:"Florida ID checklist + homeless-verification letter", st_access:"ACCESS application: SNAP / EBT, Medicaid, cash assistance", st_jobs:"Job matches that hire this week, no diploma needed", st_phone:"Lifeline free-phone enrollment",
+  // admin
+  adminTitle:"Report for partners", adminIntro:"De-identified. No names, no contact details. What the Trust would receive monthly.",
+  a2hsTitle:"Add to your home screen", a2hsIos:"Tap the Share button, then \"Add to Home Screen\". It opens like an app.", a2hsAndroid:"Open the browser menu, then \"Add to Home screen\" or \"Install app\".",
+  demoNote:"Sample record", demoPlaceholder:"Demo — sample record for the Homeless Trust meeting",
+};
+
+const ES = {
+  home:"Inicio", jobs:"Empleos", kiosk:"Kiosco", inbox:"Bandeja", report:"Informe para socios",
+  tagline:"Ayuda real, en su idioma, en su barrio.", homeQuestion:"¿Para quién busca ayuda hoy?",
+  helpingSomeone:"Estoy ayudando a alguien", helpingSomeoneSub:"Consiga la ayuda correcta para una persona que conoció",
+  helpingMyself:"Necesito ayuda", helpingMyselfSub:"Vivienda, comida, identificación, trabajo y más",
+  docsHome:"Obtener mis documentos", docsHomeSub:"ID, Seguro Social, acta de nacimiento, EBT y Medicaid — sin llamadas, sin papeleo",
+  jobsSub:"Consiga trabajo rápido", kioskSub:"Comida y ropa", helpers:"Ayudantes", helpersSub:"Voluntarios cerca", askLanguage:"¿Qué idioma habla?",
+  yes:"Sí", no:"No", next:"Siguiente", back:"Atrás", optional:"opcional", preferNot:"Prefiero no decir", stepOf:"Paso {a} de {b}",
+  submit:"Ver mi plan de ayuda", startOver:"Empezar de nuevo", emergency:"Si alguien está en peligro ahora, llame al 911.",
+  privacyNote:"Solo compartimos lo que usted nos diga. Puede parar en cualquier momento.",
+  qHousehold:"¿Es para usted solo, o para una familia?", qHouseholdSomeone:"¿Es una persona, o una familia?",
+  qHouseholdHint:"Las familias con niños tienen su propia vía y sus propios programas de vivienda.",
+  hhSingle:"Solo yo", hhSingleSomeone:"Una persona", hhSingleSub:"Un adulto", hhFamily:"Mi familia", hhFamilySomeone:"Una familia o grupo", hhFamilySub:"Adultos con niños, una pareja o parientes juntos",
+  qRegistrant:"¿Quién llena este formulario?", qRegistrantHint:"Para que el trabajador de calle sepa a quién llamar.", yourName:"Su nombre", relationship:"Soy su",
+  rel_friend:"Amigo/a", rel_neighbor:"Vecino/a", rel_family:"Familiar", rel_caseworker:"Trabajador social", rel_volunteer:"Voluntario", rel_other:"Otro",
+  qName:"¿Cómo le llamamos?", qNameSomeone:"¿Cuál es el nombre de la persona?", qNameHint:"Nombre o apodo está bien.",
+  qSleep:"¿Tiene un lugar seguro para dormir esta noche?", qSleepSomeone:"¿Tiene la persona un lugar seguro para dormir esta noche?",
+  urgentTitle:"Vamos a enviarle un trabajador de calle",
+  urgentBody:"No necesita saber exactamente dónde duerme. Un equipo de calle puede encontrarle donde se queda y empezar con vivienda real, no un refugio.",
+  urgentBodySomeone:"No necesita saber exactamente dónde duerme. Un equipo de calle puede encontrarle donde se queda y empezar con vivienda real, no un refugio.",
+  qArea:"¿En qué zona se queda?", qAreaSomeone:"¿En qué zona suele quedarse la persona?", qAreaHint:"Un barrio, una esquina o un punto de referencia es suficiente.",
+  qLandmark:"Esquina o punto de referencia", qLandmarkHint:"Ejemplo: cerca del Aldi en NE 108th St",
+  qHomelessDuration:"¿Cuánto tiempo lleva sin un lugar estable?", qHomelessDurationSomeone:"¿Cuánto tiempo lleva la persona sin un lugar estable?",
+  hd_first:"Es la primera vez, menos de un mes", hd_months:"Unos meses", hd_year:"Un año o más", hd_repeat:"Muchas veces a lo largo de los años",
+  qDanger:"¿Alguien le está haciendo daño o le da miedo ahora mismo?", qDangerSomeone:"¿Alguien le está haciendo daño a la persona o le da miedo ahora mismo?",
+  qDangerHint:"Puede omitirlo. Solo cambia con quién le conectamos.",
+  dangerNow:"Puede conseguir vivienda segura aparte de todo lo demás.", dangerBody:"Gratis, confidencial, 24/7. Llame o envíe START al 88788.",
+  qDocuments:"¿Qué papeles tiene?", qDocumentsSomeone:"¿Qué papeles tiene la persona?", qDocumentsHint:"No tener papeles es normal. Le ayudamos a conseguirlos, y cambia el orden en que hacemos las cosas.",
+  qId:"¿Tiene una identificación del gobierno?", qIdSomeone:"¿Tiene la persona una identificación del gobierno?",
+  qSsn:"¿Tarjeta del Seguro Social (o sabe el número)?", qSsnSomeone:"¿Tarjeta del Seguro Social (o sabe el número)?", qBirthCert:"¿Acta de nacimiento?",
+  qPhone:"¿Tiene teléfono?", qPhoneSomeone:"¿Tiene la persona un teléfono?",
+  qIncome:"¿Entra algo de dinero?", qIncomeHint:"Esto decide qué beneficios puede recibir, no si recibe ayuda.",
+  inc_none:"Sin ingresos", inc_job:"Un trabajo o jornal", inc_ssi:"SSI / SSDI / Seguro Social", inc_other:"Otra cosa",
+  qSnap:"¿Recibe SNAP / EBT ahora?", qMedicaid:"¿Tiene Medicaid u otro seguro médico ahora?",
+  qHealth:"Unas preguntas de salud", qHealthHint:"Abren puertas a dinero por discapacidad, vivienda para veteranos y tratamiento. Omita lo que quiera.",
+  qDisability:"¿Una discapacidad o condición que necesita cuidado?", qVeteran:"¿Sirvió en el ejército de EE. UU.?", qRecovery:"¿Quiere apoyo con alcohol o drogas?", qRecoverySomeone:"¿Quiere la persona apoyo con alcohol o drogas?",
+  qNeeds:"¿Con qué necesita ayuda?", qNeedsSomeone:"¿Con qué necesita ayuda la persona?", qNeedsHintPre:"Revisamos lo que nos dijo. Agregue o quite lo que quiera.", allOfAbove:"Todo lo anterior",
+  qContact:"¿Cómo puede contactarle un ayudante?", qContactSomeone:"¿Cómo puede contactarle un ayudante (a usted)?", qContactHint:"Teléfono o correo. Si no hay teléfono, díganos cuándo y dónde se le puede encontrar.", qNotes:"¿Algo más que debamos saber?",
+  need_housing:"Vivienda", need_id:"Identificación", need_ssn:"Tarjeta del Seguro Social", need_food:"Comida", need_clothes:"Ropa", need_job:"Un trabajo", need_healthcare:"Salud",
+  need_benefits:"EBT / comida y dinero", need_disability:"Discapacidad (SSI / SSDI)", need_documents:"Documentos y papeles", need_addiction:"Apoyo con adicciones", need_phone:"Un teléfono",
+  need_family:"Vivienda y apoyo familiar", need_veterans:"Servicios para veteranos", need_safety:"Seguridad", need_general:"Líneas 24/7",
+  planTitle:"Su plan de ayuda", planTitleSomeone:"Plan de ayuda para {name}",
+  planIntro:"Aquí está a quién llamar para cada cosa que necesita, y qué decir. Un ayudante también puede acompañarle en persona.",
+  yourNumber:"Su número de caso", showThis:"Muéstrelo en cualquier kiosco o a cualquier ayudante.",
+  outreachRequested:"Solicitud guardada. Llame a la línea de ayuda para asegurarse de que se abra hoy.",
+  referralNote:"Piloto: aquí es donde se enviaría la referencia al sistema de calle del Trust.",
+  getUpdatesTitle:"Reciba novedades sin teléfono", getUpdatesBody:"Cree una cuenta gratis con solo un nombre y un PIN de 6 dígitos. Las novedades de vivienda, empleos y ayudantes le esperan en la app o en cualquier kiosco.",
+  updatesOn:"Novedades activadas", updatesOnBody:"Este caso está guardado en su cuenta. Revise su bandeja en cualquier kiosco con su nombre y PIN.",
+  docsPlanCard:"Podemos empezar ahora mismo con su ID, Seguro Social, acta de nacimiento y beneficios.", docsStart:"Empezar mis documentos",
+  findHelper:"Conectarme con un ayudante cerca", findHelperSub:"Alguien de su zona que puede verle en persona y ayudar con llamadas, papeles y transporte.",
+  foodClothesNow:"¿Necesita comida o ropa ahora mismo?", foodClothesNowSub:"Pida una entrega en el kiosco más cercano. Se prepara en nuestro almacén y llega en unos 20 minutos.",
+  requestPickup:"Pedir una entrega", seeJobs:"Ver empleos disponibles", call:"Llamar", whatToSay:"Qué decir", hours:"Horario",
+  signIn:"Iniciar sesión", signOut:"Cerrar sesión", signInIntro:"No necesita correo ni teléfono. Elija un nombre y un PIN de 6 dígitos. Esa es su cuenta.",
+  username:"Su nombre (una palabra)", pin:"PIN de 6 dígitos", pinHint:"Elija 6 números que recuerde. No los comparta.", needAccount:"¿Nuevo? Crear una cuenta", create:"Crear cuenta",
+  staffEmail:"Personal: iniciar sesión con correo", signedInAs:"Sesión iniciada como {name}", doneSignOut:"Listo (cerrar sesión)",
+  docsTitle:"Centro de Documentos", docsIntro:"Responda una vez. Llenamos los formularios del gobierno por usted, un navegador de Helping Hand los envía, y sus documentos vuelven a un kiosco cerca de usted. Nunca tiene que llamar a nadie.",
+  docsSignIn:"Inicie sesión o cree una cuenta para guardar sus documentos y avisarle cuando lleguen.",
+  docsWhich:"¿Qué necesita?", docsWhichSub:"Marque todo lo que aplique. Nosotros manejamos el orden.",
+  doc_ssn_card:"Tarjeta del Seguro Social", doc_ssn_card_sub:"Tarjeta de reemplazo. Gratis. Necesaria para trabajar y para beneficios.",
+  doc_birth_cert:"Acta de nacimiento", doc_birth_cert_sub:"Copia certificada del estado donde nació. Necesaria para la identificación.",
+  doc_fl_id:"Identificación de Florida", doc_fl_id_sub:"ID estatal. Gratis con carta de verificación. Una visita corta en persona — un navegador le acompaña.",
+  doc_benefits:"EBT, Medicaid y ayuda en efectivo", doc_benefits_sub:"Comida (SNAP), cobertura médica y ayuda en efectivo a través de Florida ACCESS.",
+  docsAbout:"Sobre usted", docsAboutSub:"Use el nombre de su acta de nacimiento, aunque le llamen de otra forma.",
+  legalFirst:"Nombre", legalMiddle:"Segundo nombre", legalLast:"Apellido", otherNames:"Otros nombres que ha usado", dob:"Fecha de nacimiento",
+  sex:"Sexo en su acta de nacimiento", sex_male:"Masculino", sex_female:"Femenino", sex_x:"X / otro", birthPlace:"¿Dónde nació?", birthCity:"Ciudad", birthState:"Estado", birthCountry:"País",
+  docsParents:"Sus padres", docsParentsSub:"El Seguro Social y la oficina de actas usan esto para encontrar su registro. Puede dejarlo en blanco si no lo sabe.",
+  motherName:"Nombre completo de la madre", motherMaiden:"Apellido de soltera de la madre", fatherName:"Nombre completo del padre",
+  docsSsn:"Seguro Social y ciudadanía", ssnKnown:"¿Sabe su número de Seguro Social?", ssnLast4:"Últimos 4 dígitos (solo si los sabe)",
+  ssnFullLater:"Dará el número completo a su navegador en persona. Nunca lo escriba en un kiosco.", usCitizen:"¿Es ciudadano de EE. UU.?",
+  docsHave:"¿Qué tiene ahora mismo?", docsHaveSub:"Cualquier papel con su nombre ayuda. Tome una foto de lo que tenga — es privado y solo su navegador puede verlo.",
+  havePhotoId:"Alguna identificación con foto (aunque esté vencida)", haveBirthCert:"Acta de nacimiento", haveSsnCard:"Tarjeta del Seguro Social", haveOther:"Algo más (registro escolar, tarjeta médica, correo con su nombre…)",
+  photos:"Fotos", addPhoto:"Agregar una foto", photoLabelShort:"¿Qué es? (opcional)", photoAdded:"Foto guardada.",
+  docsReach:"¿Cómo le contactamos?", docsReachSub:"Cada novedad llega a su bandeja en esta app y en cualquier kiosco. Si tiene teléfono, también puede agregarlo.",
+  phoneOptional:"Teléfono (opcional)", bestWay:"Mejor forma de contactarle", reach_app:"Bandeja en esta app / kiosco", reach_helper:"A través de mi ayudante", reach_phone:"Teléfono",
+  pickupKiosk:"¿Dónde deben entregarse sus documentos?", pickupKioskSub:"Sus documentos se envían a Helping Hand y se llevan a este kiosco. Recibirá un código de recogida.",
+  docsConsent:"Permiso y firma", docsConsentSub:"Esto permite que un navegador de Helping Hand envíe sus solicitudes y reciba su correo. Puede cancelar en cualquier momento.",
+  consentMail:"Autorizo a Helping Hand a recibir correo por mí en su dirección y llevarlo al kiosco que elegí.",
+  consentRep:"Autorizo a un navegador de Helping Hand a ayudarme a completar y enviar solicitudes a la Administración del Seguro Social, el Departamento de Salud de Florida (Estadísticas Vitales), FLHSMV y el Departamento de Niños y Familias de Florida, y a hablar con ellos sobre mis solicitudes.",
+  consentTruth:"La información que di es verdadera según mi mejor conocimiento.",
+  typedName:"Escriba su nombre completo", signHere:"Firme con el dedo", clearSig:"Borrar", docsSubmit:"Enviar a mi navegador",
+  docsStatusTitle:"Sus documentos", docsStatusIntro:"Un navegador está en ello. Recibirá un mensaje aquí y en cualquier kiosco cada vez que algo cambie.",
+  docsCaseNumber:"Caso de documentos", docsMine:"Mis documentos",
+  st_collecting:"Reuniendo su información", st_ready:"Paquete listo — el navegador lo revisa", st_submitted:"Enviado al gobierno", st_appointment:"Cita fijada — el navegador le acompañará",
+  st_mailed:"Enviado por correo a Helping Hand", st_at_warehouse:"Llegó a Helping Hand", st_at_kiosk:"En el kiosco — listo para recoger", st_picked_up:"Recogido", st_issue:"Necesita atención — revise su bandeja",
+  pickupCode:"Código de recogida", pickupAt:"Recoger en", appointmentAt:"Cita", rideRequest:"¿Necesita transporte? Pídalo",
+  navTitle:"Escritorio del navegador", navIntro:"Paquetes completos, listos para enviar. Abra uno para ver los formularios prellenados y actualizar cada documento.",
+  navFilterOpen:"Requiere acción", navFilterKiosk:"En kiosco", navFilterAll:"Todos", navOpen:"Abrir paquete", navQueue:"Cola", navSubmittedOn:"Enviado", navUnassigned:"Sin asignar", navAssigned:"Navegador",
+  navPrint:"Imprimir paquete", navFilledForms:"Formularios llenos", navFilledFormsSub:"Los formularios oficiales, llenados desde este paquete. Abrir, revisar, imprimir y hacer firmar.",
+  navSetStatus:"Actualizar estado", navKiosk:"Entregar en kiosco", navCode:"Código de recogida", navSave:"Guardar", navSaved:"Actualizado. La persona ha sido notificada.",
+  navFiles:"Fotos de la persona", navSigned:"Firmado", navHousehold:"Entrevista vinculada", navLetter:"Carta de verificación de situación de calle",
+  kioskTitle:"Bienvenido", kioskQuestion:"¿Necesita comida o ropa?", kioskYes:"Sí, necesito comida o ropa", kioskHelp:"Necesito otra ayuda",
+  kioskInbox:"Mi bandeja", kioskInboxSub:"Inicie sesión con su nombre y PIN para ver sus novedades", kioskStatus:"Revisar mi pedido",
+  kioskFood:"Comida", kioskClothes:"Ropa", kioskHygiene:"Kit de higiene", sizeTop:"Talla de camisa", sizeBottom:"Talla de pantalón", sizeShoes:"Talla de zapato", kioskPlace:"Pedir",
+  kioskCode:"Su código de recogida", kioskArriving:"Se está preparando en el almacén. Llega a este kiosco en unos {n} minutos.", kioskShowCode:"Muestre este código cuando llegue la bolsa.",
+  status_requested:"Recibido", status_packing:"Preparando", status_en_route:"En camino", status_delivered:"En el kiosco", status_picked_up:"Recogido",
+  enterCode:"Escriba su código de recogida", check:"Revisar", notFound:"Código no encontrado.", kioskInboxWarn:"Toque Listo al terminar para que la siguiente persona no vea sus mensajes.",
+  hubTitle:"Beneficios, documentos y salud", hubSub:"EBT, Medicaid, discapacidad, vivienda pública, acta de nacimiento, ID",
+  inboxIntro:"Aquí llegan las novedades de vivienda, empleos, pedidos y ayudantes. Léalas en la app o en cualquier kiosco.", inboxEmpty:"Nada todavía. Las novedades aparecerán aquí.",
+  jobsTitle:"Empleos disponibles ahora", jobsIntro:"Los empleadores aquí saben que quizá aún no tenga ID, dirección o teléfono. Busque las etiquetas verdes.",
+  tagNoId:"Sin ID", tagNoAddress:"Sin dirección", tagSameDay:"Pago el mismo día", tagUrgent:"Contratando urgente", tagNoExp:"Sin experiencia ni diploma", apply:"Aplicar", applied:"Enviado — el empleador le escribirá a su bandeja",
+  jobsSearch:"Buscar: lavaplatos, construcción, limpieza…", jobsAll:"Todos", jobsUrgentOnly:"Contratan esta semana", jobsNone:"Ningún empleo coincide. Pruebe otra palabra o quite los filtros.", jobsCount:"{n} empleos disponibles", jobsApplyNote:"Un toque. El empleador recibe su nombre y su bandeja; le responde aquí o en cualquier kiosco.",
+  startsToday:"Lo que empieza hoy para usted", startsTodaySub:"No solo números para llamar. Sus respuestas ya llenaron esto:",
+  st_outreach:"Solicitud de trabajador de calle al Homeless Trust (vivienda, no refugio)", st_ss5:"Solicitud de tarjeta del Seguro Social (SS-5), prellenada", st_birth:"Solicitud de acta de nacimiento (DH 726), prellenada", st_flid:"Lista para ID de Florida + carta de verificación", st_access:"Solicitud ACCESS: SNAP / EBT, Medicaid, ayuda en efectivo", st_jobs:"Empleos que contratan esta semana, sin diploma", st_phone:"Inscripción a teléfono gratis Lifeline",
+  adminTitle:"Informe para socios", adminIntro:"Sin identificar. Sin nombres ni datos de contacto. Lo que el Trust recibiría cada mes.",
+  a2hsTitle:"Agregue a su pantalla de inicio", a2hsIos:"Toque Compartir y luego \"Agregar a pantalla de inicio\". Se abre como una app.", a2hsAndroid:"Abra el menú del navegador y luego \"Agregar a pantalla de inicio\" o \"Instalar app\".",
+  demoNote:"Registro de muestra", demoPlaceholder:"Demo — registro de muestra para la reunión con el Homeless Trust",
+};
+
+const HT = {
+  home:"Akèy", jobs:"Travay", kiosk:"Kyòs", inbox:"Bwat mesaj", report:"Rapò pou patnè",
+  tagline:"Èd reyèl, nan lang ou, nan katye w.", homeQuestion:"Pou ki moun ou vin chèche èd jodi a?",
+  helpingSomeone:"M ap ede yon moun", helpingSomeoneSub:"Jwenn bon èd pou yon moun ou rankontre",
+  helpingMyself:"Mwen bezwen èd", helpingMyselfSub:"Lojman, manje, ID, travay, ak plis",
+  docsHome:"Jwenn dokiman mwen", docsHomeSub:"ID, kat Sekirite Sosyal, batistè, EBT ak Medicaid — pa gen apèl, pa gen papye",
+  jobsSub:"Jwenn travay vit", kioskSub:"Manje ak rad", helpers:"Moun k ap ede", helpersSub:"Volontè toupre", askLanguage:"Ki lang ou pale?",
+  yes:"Wi", no:"Non", next:"Kontinye", back:"Retounen", optional:"si w vle", preferNot:"Mwen prefere pa di", stepOf:"Etap {a} sou {b}",
+  submit:"Wè plan èd mwen", startOver:"Rekòmanse", emergency:"Si yon moun an danje kounye a, rele 911.",
+  privacyNote:"Nou pataje sèlman sa w di nou pataje. Ou ka kanpe nenpòt lè.",
+  qHousehold:"Èske se pou ou sèl, oswa pou yon fanmi?", qHouseholdSomeone:"Èske se yon sèl moun, oswa yon fanmi?",
+  qHouseholdHint:"Fanmi ki gen timoun gen pwòp chemen yo ak pwòp pwogram lojman yo.",
+  hhSingle:"Mwen sèl", hhSingleSomeone:"Yon sèl moun", hhSingleSub:"Yon adilt", hhFamily:"Fanmi mwen", hhFamilySomeone:"Yon fanmi oswa gwoup", hhFamilySub:"Adilt ak timoun, yon koup, oswa fanmi ansanm",
+  qName:"Kijan pou nou rele w?", qNameSomeone:"Ki premye non moun nan?", qNameHint:"Premye non oswa ti non ou byen.",
+  qSleep:"Èske w gen yon kote ki an sekirite pou w dòmi aswè a?", qSleepSomeone:"Èske moun nan gen yon kote ki an sekirite pou l dòmi aswè a?",
+  urgentTitle:"Ann jwenn yon travayè lari pou ou",
+  urgentBody:"Ou pa bezwen konnen egzakteman kote w dòmi. Yon ekip lari ka rankontre w kote w rete a epi kòmanse ak yon vrè lojman, pa yon abri.",
+  urgentBodySomeone:"Ou pa bezwen konnen egzakteman kote yo dòmi. Yon ekip lari ka rankontre yo kote yo rete a epi kòmanse ak yon vrè lojman, pa yon abri.",
+  qArea:"Nan ki zòn ou rete?", qAreaSomeone:"Nan ki zòn moun nan konn rete?", qAreaHint:"Yon katye, yon kwen ri, oswa yon pwen repè ase.",
+  qLandmark:"Kwen ri oswa pwen repè", qLandmarkHint:"Egzanp: toupre Aldi sou NE 108th St",
+  qHomelessDuration:"Depi konbyen tan ou pa gen yon kote ki estab?", qHomelessDurationSomeone:"Depi konbyen tan yo pa gen yon kote ki estab?",
+  hd_first:"Se premye fwa, mwens pase yon mwa", hd_months:"Kèk mwa", hd_year:"Yon ane oswa plis", hd_repeat:"Plizyè fwa pandan ane yo",
+  qDanger:"Èske gen yon moun k ap fè w mal oswa ki fè w pè kounye a?", qDangerSomeone:"Èske gen yon moun k ap fè yo mal oswa ki fè yo pè kounye a?",
+  qDangerHint:"Ou ka sote sa. Li sèlman chanje ak ki moun nou konekte w.",
+  dangerNow:"Ou ka jwenn lojman an sekirite apa de tout lòt bagay.", dangerBody:"Gratis, konfidansyèl, 24/7. Rele oswa voye tèks START nan 88788.",
+  qDocuments:"Ki papye ou genyen?", qDocumentsSomeone:"Ki papye yo genyen?", qDocumentsHint:"Pa gen papye se nòmal. N ap ede w jwenn yo, epi sa chanje lòd nou fè bagay yo.",
+  qId:"Èske w gen yon ID gouvènman?", qIdSomeone:"Èske moun nan gen yon ID gouvènman?",
+  qSsn:"Kat Sekirite Sosyal (oswa ou konnen nimewo a)?", qSsnSomeone:"Kat Sekirite Sosyal (oswa yo konnen nimewo a)?", qBirthCert:"Batistè?",
+  qPhone:"Èske w gen yon telefòn?", qPhoneSomeone:"Èske moun nan gen yon telefòn?",
+  qIncome:"Èske gen lajan k ap antre?", qIncomeHint:"Sa deside ki benefis ou ka jwenn, pa si w jwenn èd.",
+  inc_none:"Pa gen revni", inc_job:"Yon travay oswa djòb pa jou", inc_ssi:"SSI / SSDI / Sekirite Sosyal", inc_other:"Yon lòt bagay",
+  qSnap:"Èske w ap resevwa SNAP / EBT kounye a?", qMedicaid:"Èske w gen Medicaid oswa lòt asirans sante kounye a?",
+  qHealth:"Kèk kesyon sou sante", qHealthHint:"Yo louvri pòt pou lajan andikap, lojman veteran, ak tretman. Sote sa w vle.",
+  qDisability:"Yon andikap oswa yon kondisyon ki bezwen swen?", qVeteran:"Èske w te sèvi nan lame Etazini?", qRecovery:"Èske w ta renmen sipò ak alkòl oswa dwòg?", qRecoverySomeone:"Èske yo ta renmen sipò ak alkòl oswa dwòg?",
+  qNeeds:"Ak kisa w bezwen èd?", qNeedsSomeone:"Ak kisa moun nan bezwen èd?", qNeedsHintPre:"Nou verifye sa w di nou. Ajoute oswa retire nenpòt bagay.", allOfAbove:"Tout sa ki anwo",
+  qContact:"Kijan yon moun k ap ede ka jwenn ou?", qContactSomeone:"Kijan yon moun k ap ede ka jwenn ou (ou menm)?", qContactHint:"Telefòn oswa imel. Si pa gen telefòn, di nou kilè ak ki kote yo ka jwenn ou.", qNotes:"Gen lòt bagay nou ta dwe konnen?",
+  need_housing:"Lojman", need_id:"ID", need_ssn:"Kat Sekirite Sosyal", need_food:"Manje", need_clothes:"Rad", need_job:"Yon travay", need_healthcare:"Swen sante",
+  need_benefits:"EBT / manje ak lajan", need_disability:"Andikap (SSI / SSDI)", need_documents:"Dokiman ak papye", need_addiction:"Sipò pou adiksyon", need_phone:"Yon telefòn",
+  need_family:"Lojman ak sipò fanmi", need_veterans:"Sèvis veteran", need_safety:"Sekirite", need_general:"Liy 24/7",
+  planTitle:"Plan èd ou", planTitleSomeone:"Plan èd pou {name}",
+  planIntro:"Men ki moun pou rele pou chak bagay ou bezwen, ak sa pou w di. Yon moun k ap ede ka pase sou sa avè w an pèsòn tou.",
+  yourNumber:"Nimewo ka ou", showThis:"Montre sa nan nenpòt kyòs oswa bay nenpòt moun k ap ede.",
+  outreachRequested:"Demann lan anrejistre. Rele liy èd la pou asire yo louvri l jodi a.",
+  referralNote:"Pilòt: se isit la yon referans t ap ale nan sistèm lari Trust la.",
+  signIn:"Konekte", signOut:"Dekonekte", signInIntro:"Ou pa bezwen imel ni telefòn. Chwazi yon non ak yon PIN 6 chif. Sa se kont ou.",
+  username:"Non ou (yon mo)", pin:"PIN 6 chif", pinHint:"Chwazi 6 chif w ap sonje. Pa pataje yo.", needAccount:"Nouvo? Kreye yon kont", create:"Kreye kont",
+  docsTitle:"Sant Dokiman", docsWhich:"Kisa w bezwen?", doc_ssn_card:"Kat Sekirite Sosyal", doc_birth_cert:"Batistè", doc_fl_id:"Kat ID Florid", doc_benefits:"EBT, Medicaid ak èd lajan",
+  docsAbout:"Sou ou", legalFirst:"Premye non", legalLast:"Siyati", dob:"Dat nesans", docsConsent:"Pèmisyon ak siyati", signHere:"Siyen ak dwèt ou", clearSig:"Efase", docsSubmit:"Voye bay navigatè mwen",
+  docsStatusTitle:"Dokiman ou yo", pickupCode:"Kòd pou pran", pickupAt:"Pran nan",
+  kioskTitle:"Byenveni", kioskQuestion:"Èske w bezwen manje oswa rad?", kioskYes:"Wi, mwen bezwen manje oswa rad", kioskHelp:"Mwen bezwen lòt èd",
+  kioskInbox:"Bwat mesaj mwen", kioskStatus:"Verifye komann mwen", kioskFood:"Manje", kioskClothes:"Rad", kioskHygiene:"Kit ijyèn", kioskPlace:"Kòmande",
+  kioskCode:"Kòd ou pou pran", kioskArriving:"Y ap prepare l nan depo a. L ap rive nan kyòs sa a nan apeprè {n} minit.", kioskShowCode:"Montre kòd sa a lè sak la rive.",
+  status_requested:"Resevwa", status_packing:"Anbalaj", status_en_route:"Sou wout", status_delivered:"Nan kyòs la", status_picked_up:"Pran",
+  enterCode:"Antre kòd ou", check:"Verifye", notFound:"Kòd la pa jwenn.",
+  inboxIntro:"Nouvèl sou lojman, travay, sak, ak moun k ap ede vini isit la. Li yo nan app la oswa nan nenpòt kyòs.", inboxEmpty:"Anyen poko. Nouvèl yo ap parèt isit la.",
+  jobsTitle:"Travay k ap anboche kounye a", call:"Rele", whatToSay:"Sa pou w di", hours:"Lè", tagUrgent:"Anboche ijan", tagNoExp:"Pa bezwen eksperyans ni diplòm", apply:"Aplike", jobsSearch:"Chèche: lave asyèt, konstriksyon, netwayaj…", jobsAll:"Tout travay", jobsUrgentOnly:"Anboche semèn sa a",
+  startsToday:"Sa ki kòmanse pou ou jodi a", startsTodaySub:"Pa sèlman nimewo pou rele. Repons ou yo deja ranpli sa yo:",
+  a2hsTitle:"Ajoute sou ekran akèy ou", demoNote:"Dosye egzanp",
+};
+
+const LANGS = [{code:"en",native:"English",english:"English"},{code:"es",native:"Español",english:"Spanish"},{code:"ht",native:"Kreyòl Ayisyen",english:"Haitian Creole"}];
+const MORE_LANGS = [["Português","Portuguese"],["Français","French"],["中文","Chinese"],["Tiếng Việt","Vietnamese"],["العربية","Arabic"],["Русский","Russian"]];
+const DICTS = { en: EN, es: ES, ht: HT };
+
+const WELCOME = [
+  { code:"en", tagline:"Real help, in your language, in your neighborhood.", items:["Housing (not a shelter)","Food & clothes in 20 minutes","ID & birth certificate","Social Security card","EBT & Medicaid","Disability benefits","A job","A helper who walks with you","No phone or email needed"], tap:"Tap anywhere to begin" },
+  { code:"es", tagline:"Ayuda real, en su idioma, en su barrio.", items:["Vivienda (no un refugio)","Comida y ropa en 20 minutos","Identificación y acta de nacimiento","Tarjeta del Seguro Social","EBT y Medicaid","Beneficios por discapacidad","Un trabajo","Un ayudante que le acompaña","Sin teléfono ni correo"], tap:"Toque en cualquier lugar para empezar" },
+];
+
+const AREAS = ["North Miami","North Miami Beach","Miami Shores / El Portal","Little Haiti","Liberty City","Miami Gardens","Opa-locka","Hialeah","Downtown / Overtown","Little Havana","Wynwood / Edgewater","Miami Beach","Coconut Grove","Homestead / South Dade","Somewhere else in Miami-Dade"];
+const NEEDS = ["housing","id","ssn","documents","food","clothes","job","healthcare","benefits","disability","addiction","phone"];
+const NEED_ICONS = { housing:"🏠", id:"🪪", ssn:"📄", food:"🥫", clothes:"👕", job:"💼", healthcare:"🩺", benefits:"💳", disability:"♿", documents:"📑", addiction:"💚", phone:"📱", family:"👨‍👩‍👧", veterans:"🎖️", safety:"🛡️", general:"☎️" };
+const DOC_TYPES = ["ssn_card","birth_cert","fl_id","benefits"];
+const DOC_ICONS = { ssn_card:"🪪", birth_cert:"📜", fl_id:"🆔", benefits:"🥗" };
+const STATUS_ORDER = ["collecting","ready","submitted","appointment","mailed","at_warehouse","at_kiosk","picked_up"];
+const KIOSK = { code:"NM-108", name:"NE 108th St Kiosk", address:"Near Aldi, 1290 NE 108th St, Miami, FL 33161", area:"North Miami" };
+
+// ---------- Resources: the real Miami-Dade services from the live app's database ----------
+const RESOURCES = [
+  {need:"housing", name:"Miami-Dade Homeless Helpline", phone:"305-375-2273", hours:"Mon-Fri 8 AM-5 PM (toll-free 1-877-994-4357)", description:"Opens a street outreach request. An outreach worker (OAP team) comes to the area where you stay, assesses your situation, and connects you with Rapid Re-Housing or Permanent Supportive Housing. You do not need an exact address, an intersection or general area is enough.", script:"I need a street outreach worker to meet me/this person in the area of [location]. They do not have a phone. They want permanent housing or rapid rehousing, not an emergency shelter. Can you open an outreach referral?"},
+  {need:"housing", name:"Miami Recovery Project – Street Outreach", phone:"305-967-8509", hours:"Call for hours", description:"Street outreach team that works with unsheltered people, helps get documents, and connects to rapid rehousing and permanent supportive housing."},
+  {need:"housing", name:"Hermanos de la Calle", phone:null, hours:"Street outreach across Miami-Dade", description:"Connects people to housing opportunities, including shared housing for people transitioning out of homelessness."},
+  {need:"housing", name:"Miami-Dade Public Housing (PHCD) – public housing & Section 8", phone:"786-469-4300", hours:"Mon-Fri 8 AM-5 PM", address:"Applicant Leasing Center, 701 NW 1st Court, 14th Floor, Miami, FL 33136", description:"Government housing: public housing, Section 8 vouchers, and project-based units. Homeless applicants may get preference.", script:"I am homeless in the North Miami area. Is the public housing or Section 8 waitlist open, and how do I get on it? Do I get a homeless preference?"},
+  {need:"id", name:"Hermanos de la Calle", phone:null, hours:"Street outreach across Miami-Dade", description:"Outreach workers help you get an ID and vital documents (birth certificate, Social Security card), benefits, transportation, and case management."},
+  {need:"id", name:"Florida DHSMV – ID Card", phone:"850-617-2000", hours:"Mon-Fri", description:"State ID cards. If you are homeless you may qualify for a fee exemption; an outreach worker or case manager can sign the homeless certification form."},
+  {need:"ssn", name:"Social Security Administration", phone:"1-800-772-1213", hours:"Mon-Fri 8 AM-7 PM", description:"Replacement Social Security card. Free. You can list a shelter, outreach agency, or a trusted address for mail."},
+  {need:"documents", name:"Florida Dept. of Health Miami-Dade – birth certificates", phone:"305-324-2400", hours:"Mon-Fri 8 AM-4 PM, no appointment", address:"Downtown, North Dade, and West Perrine health centers", description:"Florida birth certificate: $20. If you have no ID, go with an outreach worker or case manager first; fees can be waived with a homeless certification."},
+  {need:"documents", name:"Camillus House Day Center – mail address, meals, showers", phone:"305-374-1065", hours:"Meals Mon-Fri 8:30 AM; mail Mon-Fri 11 AM-noon", address:"1603 NW 7th Avenue, Miami, FL 33136", description:"You can receive mail here, which solves the address problem for benefits, Social Security, and ID applications."},
+  {need:"food", name:"Florida Access (SNAP / Medicaid)", phone:"1-866-762-2237", hours:"Mon-Fri 7 AM-6 PM", description:"Apply for SNAP food benefits and Medicaid. No fixed address required; you can use a general delivery or agency address."},
+  {need:"food", name:"Feeding South Florida", phone:"954-518-1818", hours:"Mon-Fri", description:"Find a food pantry or hot meal near you in Miami-Dade."},
+  {need:"clothes", name:"211 Miami", phone:"211", hours:"24/7", description:"Call 211 for clothing closets, hygiene kits, and emergency needs near you."},
+  {need:"job", name:"CareerSource South Florida", phone:"305-594-7615", hours:"Mon-Fri", description:"Free job placement, resume help, training, and work clothes assistance. Walk in to any center."},
+  {need:"healthcare", name:"Camillus Health Concern", phone:"305-577-4840", hours:"Mon-Fri", description:"Free primary care, dental, and behavioral health for people experiencing homelessness in Miami-Dade."},
+  {need:"healthcare", name:"Jackson Health System – financial assistance (Jackson Prime card)", phone:"305-585-2222", hours:"Mon-Fri; apply online any time", description:"Free or sliding-scale hospital and clinic care for Miami-Dade residents based on income."},
+  {need:"benefits", name:"Florida ACCESS (DCF) – SNAP / EBT, Medicaid, cash assistance", phone:"1-866-762-2237", hours:"Mon-Fri 7 AM-6 PM; apply online 24/7", description:"One application covers SNAP (EBT food money), Medicaid, and Temporary Cash Assistance. You do not need a fixed address. Ask for expedited SNAP if you have almost no income (can be approved in 7 days).", script:"I have no income and no fixed address. I want to apply for SNAP food benefits and Medicaid, and I would like expedited SNAP."},
+  {need:"benefits", name:"Miami-Dade Community Action & Human Services (CAHSD)", phone:"786-469-4600", hours:"Mon-Fri", address:"111 NW 1st Street, Miami, FL 33128", description:"County help with rent, utilities, and food for people who are homeless or facing eviction."},
+  {need:"disability", name:"Social Security – SSI and SSDI disability benefits", phone:"1-800-772-1213", hours:"Mon-Fri 8 AM-7 PM", description:"SSI is monthly money for people with a disability and little or no income. Ask about the SOAR program, which helps homeless people get approved faster.", script:"I want to apply for SSI/SSDI disability benefits. I am homeless and do not have a phone. Can you help me start an application and connect me with a SOAR case worker?"},
+  {need:"disability", name:"Legal Services of Greater Miami – free help with benefit denials", phone:"305-576-0080", hours:"Mon-Fri", description:"Free lawyers for low-income residents: SSI/SSDI denials and appeals, SNAP or Medicaid problems, and tenant issues."},
+  {need:"addiction", name:"Miami Recovery Project – Street Outreach", phone:"305-967-8509", hours:"Call for hours", description:"Outreach team with recovery focus. Can connect you to treatment and housing at the same time."},
+  {need:"addiction", name:"SAMHSA National Helpline", phone:"1-800-662-4357", hours:"24/7, free, confidential", description:"Free treatment referral and information service for substance use and mental health. English and Spanish."},
+  {need:"phone", name:"Lifeline / Affordable Connectivity (free phone)", phone:"1-800-234-9473", hours:"Mon-Fri", description:"Free or low-cost phone and service if you receive SNAP, Medicaid, or have low income. An outreach worker can help you apply."},
+  {need:"family", name:"Miami-Dade Homeless Helpline – families with children (press 6)", phone:"1-877-994-4357", hours:"Mon-Fri 8 AM-5 PM", description:"Families with minor children get a separate track: press option 6. A family outreach team connects you to family housing programs, not a single-adult shelter.", script:"I am calling for a family with [number] children, ages [ages]. We do not have a safe place to sleep tonight. We want to be connected to family housing."},
+  {need:"family", name:"Lotus House – women, youth and children, 24/7", phone:"305-438-0556", hours:"24/7, 365 days", address:"217 NW 15th Street, Miami, FL 33136", description:"Sanctuary for women, young people, and children with on-site housing navigation, childcare, health, and job programs."},
+  {need:"veterans", name:"VA National Call Center for Homeless Veterans", phone:"1-877-424-3838", hours:"24/7", description:"Connects you to VA housing (HUD-VASH vouchers), SSVF rapid rehousing, health care, and benefits. Or press 3 on the Miami-Dade Homeless Helpline.", script:"I am a veteran experiencing homelessness in Miami-Dade. I want to be connected to HUD-VASH or SSVF housing."},
+  {need:"safety", name:"National Domestic Violence Hotline", phone:"1-800-799-7233", hours:"24/7, confidential; text START to 88788", description:"If someone is hurting you or you are afraid of someone, call or text. They can find safe housing that is separate from the general system."},
+  {need:"general", name:"Miami-Dade Homeless Helpline", phone:"305-375-2273", hours:"Mon-Fri 8 AM-5 PM (toll-free 1-877-994-4357)", description:"The county front door for anyone experiencing homelessness. Coordinated Entry assesses you and refers you for housing, benefits, and services."},
+  {need:"general", name:"211 Miami", phone:"211", hours:"24/7", description:"Free 24/7 line that connects you to any local service: food, shelter alternatives, health, jobs, counseling."},
+];
+
+// ---------- DEMO records (sample data; the real app calls these DEMO James etc.) ----------
+const DEMO_CASES = [
+  { id:"C1C1C1", first:"James", middle:"", last:"Carter", dob:"1978-03-14", sex:"male", birthCity:"Jacksonville", birthState:"FL", birthCountry:"USA", mother:"Denise Carter", motherMaiden:"Denise Brooks", father:"Robert Carter", ssnKnown:true, ssnLast4:"4471", citizen:true, hasPhotoId:false, hasBirthCert:false, hasSsnCard:false, otherDoc:"Expired Duval County library card", phone:"", reach:"app", signedAt:"2026-09-08T14:22:00", signatureName:"James Carter", navigator:"char", intake:"HH-7A2F19", area:"North Miami", landmark:"Near the Aldi on NE 108th St",
+    steps:[ {doc:"ssn_card", status:"at_kiosk", code:"KM482"}, {doc:"birth_cert", status:"submitted", detail:"Florida DOH Vital Statistics, mailed 9/9. Usually 2-3 weeks."}, {doc:"fl_id", status:"appointment", appointment:"2026-09-10T14:00:00", detail:"Bring the birth certificate we pick up first."}, {doc:"benefits", status:"ready", detail:"Expedited SNAP requested — interview within 7 days."} ],
+    photos:["Library card (front)","Hospital discharge paper, 2024"] },
+  { id:"A9B2E4", first:"Rosa", middle:"María", last:"Delgado", dob:"1969-11-02", sex:"female", birthCity:"Hialeah", birthState:"FL", birthCountry:"USA", signedAt:"2026-09-11T10:05:00", signatureName:"Rosa María Delgado", navigator:null, intake:"HH-3D08C2", area:"Little Haiti",
+    steps:[ {doc:"birth_cert", status:"collecting"}, {doc:"benefits", status:"ready"} ], photos:[] },
+  { id:"F03D71", first:"Jean", middle:"", last:"Baptiste", dob:"1985-06-21", sex:"male", birthCity:"Port-au-Prince", birthState:"", birthCountry:"Haiti", signedAt:"2026-09-12T16:40:00", signatureName:"Jean Baptiste", navigator:"char", intake:"HH-91BB40", area:"North Miami",
+    steps:[ {doc:"ssn_card", status:"mailed"}, {doc:"fl_id", status:"collecting"} ], photos:["Haitian passport (expired)"] },
+];
+
+const DEMO_INBOX = [
+  { from:"Navigator (Charlotte)", when:"Today 9:12 AM", unread:true, subject:"Your Social Security card is at the kiosk", body:"Your card arrived. Pickup code KM482 at the NE 108th St kiosk, any time the store is open. Bring nothing — just the code." },
+  { from:"Helping Hand", when:"Yesterday", unread:true, subject:"Appointment set: Florida ID", body:"Thursday 9/10 at 2:00 PM. Your navigator will meet you at the kiosk at 1:30 and go with you. A ride is booked." },
+  { from:"Miami Recovery Project – Outreach", when:"Sep 8", unread:false, subject:"Outreach worker assigned", body:"Marcus from the OAP team will look for you near the Aldi Tuesday morning between 8 and 10. He will have a Helping Hand card." },
+  { from:"Kiosk NM-108", when:"Sep 7", unread:false, subject:"Bag picked up", body:"Food + hygiene kit, code TQ917. Thank you for picking it up." },
+];
+
+// Job categories: work that hires this week and needs no diploma or experience.
+const JOB_CATS = [["kitchen","🍽️","Restaurant & kitchen"],["construction","🏗️","Construction"],["cleaning","🧹","Cleanup & cleaning"],["cafeteria","🥪","Cafeteria & food service"],["warehouse","📦","Warehouse & moving"],["landscaping","🌿","Landscaping"],["hotel","🛎️","Hotel & housekeeping"]];
+const DEMO_JOBS = [
+  { title:"Dishwasher", company:"Sedano's Café", area:"North Miami", pay:"$15/hr", cat:"kitchen", tags:["urgent","noexp","noaddress"], shifts:"Flexible shifts, Spanish a plus. Start this week." },
+  { title:"Kitchen porter / prep", company:"Hotel on Collins Ave", area:"Miami Beach", pay:"$17/hr", cat:"kitchen", tags:["urgent","noexp","noid","sameday"], shifts:"Nights & weekends. Interview on the spot." },
+  { title:"Construction laborer", company:"Site crew, NE 125th St", area:"North Miami", pay:"$160/day", cat:"construction", tags:["urgent","noexp","noid","sameday"], shifts:"Pickup 6 AM. Boots provided the first week." },
+  { title:"Demolition & cleanup crew", company:"Restoration contractor", area:"Miami Gardens", pay:"$18/hr", cat:"cleaning", tags:["urgent","noexp","sameday"], shifts:"Mon–Sat. Ride from the kiosk arranged." },
+  { title:"Cafeteria worker", company:"School food service", area:"North Miami Beach", pay:"$15.50/hr", cat:"cafeteria", tags:["noexp","noaddress"], shifts:"Weekdays 6 AM–2 PM. Free meal on shift." },
+  { title:"Overnight cleaning crew", company:"Office park janitorial", area:"Miami Shores / El Portal", pay:"$16/hr", cat:"cleaning", tags:["urgent","noexp","noid"], shifts:"10 PM–6 AM. Start tomorrow." },
+  { title:"Warehouse packer", company:"Helping Hand pantry", area:"North Miami", pay:"$16/hr", cat:"warehouse", tags:["noexp","noid","noaddress","sameday"], shifts:"Mon–Fri mornings. Hire from the program first." },
+  { title:"Mover's helper", company:"Local moving company", area:"Hialeah", pay:"$140/day + tips", cat:"warehouse", tags:["urgent","noexp","sameday"], shifts:"Day by day. Text the night before." },
+  { title:"Landscaping crew", company:"Grounds maintenance", area:"Miami Gardens", pay:"$150/day", cat:"landscaping", tags:["noexp","noid","sameday"], shifts:"Pickup 6 AM at NE 125th St." },
+  { title:"Hotel housekeeping", company:"Hotel on Collins Ave", area:"Miami Beach", pay:"$16/hr", cat:"hotel", tags:["urgent","noexp"], shifts:"Day shifts. Uniform provided." },
+  { title:"Line cook (will train)", company:"Restaurant group", area:"Wynwood / Edgewater", pay:"$18/hr", cat:"kitchen", tags:["noexp"], shifts:"Evenings. Trained on the job." },
+  { title:"Event setup & teardown", company:"Stadium & arena events", area:"Downtown / Overtown", pay:"$17/hr", cat:"warehouse", tags:["urgent","noexp","noid","sameday"], shifts:"Event days. Paid at the end of the shift." },
+];
+
+const REPORT = {
+  period:"Pilot structure — no volume yet (app went live Sept 2026)",
+  rows:[["Intakes opened","0"],["Needs flagged (top 3)","housing · id · benefits"],["Resources linked","29 Miami-Dade services"],["Referrals to outreach (OAP)","0 — pathway ready"],["Document applications started","0"],["Documents delivered to kiosk","0"],["Kiosk pickups (food / clothes)","0"],["Helper matches","0"],["Jobs filled","0"],["Housing placements","0"]],
+};
+
+// ---------- State ----------
+const S = {
+  lang: "en", route: "home", user: null, kioskMode: false, menuOpen: false,
+  intake: null, // in-progress guided flow
+  plan: null,   // completed intake → help plan
+  doc: null,    // in-progress document center draft
+  docCase: null, // submitted case for the signed-in user
+  order: null,  // kiosk supply request
+  navCase: null, // open packet id
+  inbox: DEMO_INBOX.map(m => ({...m})),
+  applied: new Set(),
+};
+try { const l = localStorage.getItem("hh-lang"); if (l && DICTS[l]) S.lang = l; } catch {}
+
+const t = (k, vars) => {
+  let s = (DICTS[S.lang] && DICTS[S.lang][k]) ?? EN[k] ?? k;
+  if (vars) for (const [a, b] of Object.entries(vars)) s = s.replaceAll(`{${a}}`, b);
+  return s;
+};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $ = sel => document.querySelector(sel);
+const view = $("#view");
+const mkCode = () => { const L = "ABCDEFGHJKLMNPQRSTUVWXYZ"; const l = () => L[Math.floor(Math.random()*L.length)]; return `${l()}${l()}${Math.floor(100+Math.random()*900)}`; };
+const hex6 = () => Math.random().toString(16).slice(2, 8).toUpperCase();
+const fmtDate = iso => new Date(iso).toLocaleDateString(S.lang === "es" ? "es-US" : "en-US");
+const fmtDT = iso => new Date(iso).toLocaleString(S.lang === "es" ? "es-US" : "en-US", { dateStyle: "short", timeStyle: "short" });
+
+// ---------- Splash ----------
+(function splash() {
+  let i = 0, timer;
+  const fade = $("#splash-fade");
+  const paint = () => {
+    const w = WELCOME[i];
+    $("#splash-tag").textContent = w.tagline;
+    $("#splash-list").innerHTML = w.items.map(x => `<li>${esc(x)}</li>`).join("");
+    $("#splash-tap").textContent = w.tap;
+    $("#dot0").classList.toggle("on", i === 0); $("#dot1").classList.toggle("on", i === 1);
+  };
+  paint();
+  timer = setInterval(() => { fade.classList.remove("in"); setTimeout(() => { i = (i + 1) % WELCOME.length; paint(); fade.classList.add("in"); }, 600); }, 4200);
+  const go = () => { clearInterval(timer); $("#s-splash").classList.remove("on"); $("#s-main").classList.add("on"); navigate("language"); };
+  $("#splash").addEventListener("click", go);
+  $("#splash").addEventListener("keydown", e => e.key === "Enter" && go());
+})();
+
+// ---------- Header / nav ----------
+function paintLangbar() {
+  $("#langbar-top").innerHTML = LANGS.map(l => `<button class="${l.code === S.lang ? "active" : ""}" data-lang="${l.code}" aria-label="${l.english}">${l.code.toUpperCase()}</button>`).join("");
+  document.querySelectorAll("[data-t]").forEach(el => el.textContent = t(el.dataset.t));
+  document.documentElement.lang = S.lang;
+}
+document.addEventListener("click", e => {
+  const lb = e.target.closest("[data-lang]"); if (lb) { setLang(lb.dataset.lang); return; }
+  const go = e.target.closest("[data-go]"); if (go) { S.menuOpen = false; $("#menu").classList.remove("open"); navigate(go.dataset.go); return; }
+});
+$("#menubtn").addEventListener("click", () => { S.menuOpen = !S.menuOpen; $("#menu").classList.toggle("open", S.menuOpen); $("#menubtn").setAttribute("aria-expanded", String(S.menuOpen)); });
+function setLang(code) { S.lang = code; try { localStorage.setItem("hh-lang", code); } catch {} paintLangbar(); render(); }
+
+// ---------- Router ----------
+function navigate(route, opts = {}) {
+  S.route = route; S.kioskMode = route === "kiosk" || route === "kioskOrder";
+  $("#kiosk-tag").hidden = !S.kioskMode;
+  Object.assign(S, opts);
+  window.scrollTo({ top: 0 });
+  render();
+}
+function render() {
+  paintLangbar();
+  view.classList.toggle("kiosk", S.kioskMode);
+  const r = ROUTES[S.route] || ROUTES.home;
+  view.innerHTML = r();
+  if (AFTER[S.route]) AFTER[S.route]();
+}
+const AFTER = {};
+
+// ---------- Shared pieces ----------
+const langbarFull = () => `<div class="langbar" style="margin-bottom:12px">${LANGS.map(l => `<button class="${l.code === S.lang ? "active" : ""}" data-lang="${l.code}">${l.native}</button>`).join("")}</div>`;
+const progress = (a, b, label) => `<p class="small muted" style="margin:0 0 6px">${t("stepOf", {a, b})}${label ? " · " + label : ""}</p><div class="progress" role="progressbar" aria-valuenow="${a}" aria-valuemin="1" aria-valuemax="${b}"><div style="width:${(a/b)*100}%"></div></div>`;
+const yesno = (key, val, skip) => `<div class="yesno"><button class="${val === true ? "sel" : ""}" data-set="${key}" data-val="true">${t("yes")}</button><button class="${val === false ? "sel" : ""}" data-set="${key}" data-val="false">${t("no")}</button></div>${skip ? `<button class="btn ghost small" data-set="${key}" data-val="null" style="margin-top:4px">${t("preferNot")}</button>` : ""}`;
+const chips = (key, opts, val, multi) => `<div class="chips">${opts.map(([v, label, icon]) => `<button class="${(multi ? val.includes(v) : val === v) ? "sel" : ""}" data-set="${key}" data-val="${v}" ${multi ? 'data-multi="1"' : ""}>${icon ? `<span class="icon">${icon}</span>` : ""}${esc(label)}</button>`).join("")}</div>`;
+const resourceCard = r => `<div class="resource"><div class="name">${esc(r.name)}</div>${r.hours ? `<div class="small muted">${t("hours")}: ${esc(r.hours)}</div>` : ""}${r.address ? `<div class="small muted">📍 ${esc(r.address)}</div>` : ""}<p class="small" style="margin:6px 0 0">${esc(r.description)}</p>${r.script ? `<div class="script">“${esc(r.script)}”</div>` : ""}${r.phone ? `<a class="call" href="tel:${r.phone.replace(/[^\d]/g, "")}">📞 ${t("call")} ${esc(r.phone)}</a>` : ""}</div>`;
+const pinLogin = (compact) => `<div class="card" id="pinlogin"><h3 style="margin-bottom:4px">${t("signIn")}</h3><p class="small muted">${t("signInIntro")}</p><label class="field" for="pin-user">${t("username")}</label><input type="text" id="pin-user" autocomplete="username" autocapitalize="off" placeholder="example: marcus1990"><label class="field" for="pin-pin">${t("pin")}</label><input type="password" id="pin-pin" inputmode="numeric" maxlength="6" placeholder="1 2 3 4 5 6" style="letter-spacing:.3em;text-align:center"><p class="hint">${t("pinHint")}</p><button class="btn block" id="pin-go" style="margin-top:12px">${t("signIn")}</button><button class="btn secondary block" id="pin-new" style="margin-top:8px">${t("needAccount")}</button>${compact ? "" : `<p class="small muted" style="text-align:center;margin:12px 0 0">${t("staffEmail")}</p>`}</div>`;
+function wirePin(onDone) {
+  const go = () => { const u = $("#pin-user").value.trim() || "james"; S.user = { name: u, role: u.toLowerCase() === "char" ? "admin" : "user" }; onDone(); };
+  $("#pin-go").onclick = go; $("#pin-new").onclick = go;
+  $("#pin-pin").addEventListener("keydown", e => e.key === "Enter" && go());
+}
+const demoBadge = () => `<span class="demo-tag">${t("demoNote")}</span>`;
+
+// ---------- Routes ----------
+const ROUTES = {};
+
+ROUTES.language = () => `<h1>${t("askLanguage")}</h1><div class="langgrid">${LANGS.map(l => `<button data-pick-lang="${l.code}"><span class="native">${l.native}</span><span class="english">${l.english}</span></button>`).join("")}${MORE_LANGS.map(([n, e]) => `<button data-pick-lang="en" title="${e}"><span class="native">${n}</span><span class="english">${e}</span></button>`).join("")}</div><p class="hint" style="margin-top:16px">Full app in English, Spanish and Haitian Creole. Other languages show the welcome text and open in English for now.</p>`;
+AFTER.language = () => view.querySelectorAll("[data-pick-lang]").forEach(b => b.onclick = () => { S.lang = b.dataset.pickLang; try { localStorage.setItem("hh-lang", S.lang); } catch {} navigate("home"); });
+
+ROUTES.home = () => `${langbarFull()}<h1>${t("homeQuestion")}</h1><p class="muted">${t("tagline")}</p>
+<div class="bigchoice">
+  <button class="primary" data-start="someone"><div class="icon">🤝</div><div class="title">${t("helpingSomeone")}</div><div class="sub">${t("helpingSomeoneSub")}</div></button>
+  <button class="accent" data-start="me"><div class="icon">🙋</div><div class="title">${t("helpingMyself")}</div><div class="sub">${t("helpingMyselfSub")}</div></button>
+  <button data-go="docs"><div class="icon">🪪</div><div class="title">${t("docsHome")}</div><div class="sub">${t("docsHomeSub")}</div></button>
+</div>
+<div class="quick">
+  <button data-go="jobs"><span class="icon">💼</span><span class="title">${t("jobs")}</span><span class="sub">${t("jobsSub")}</span></button>
+  <button data-go="kiosk"><span class="icon">🖥️</span><span class="title">${t("kiosk")}</span><span class="sub">${t("kioskSub")}</span></button>
+  <button data-go="inbox"><span class="icon">📬</span><span class="title">${t("inbox")}</span><span class="sub">${S.inbox.filter(m => m.unread).length} new</span></button>
+</div>
+<p class="emergency">${t("emergency")}</p>`;
+AFTER.home = () => view.querySelectorAll("[data-start]").forEach(b => b.onclick = () => startIntake(b.dataset.start === "someone"));
+
+// ---------- Guided help flow ----------
+function startIntake(someone) {
+  S.intake = { someone, idx: 0, household: null, registrantName: "", registrantRel: "", name: "", hasSleep: null, area: "", landmark: "", duration: "", inDanger: null, hasId: null, hasSsn: null, hasBirthCert: null, hasPhone: null, income: "", hasSnap: null, hasMedicaid: null, disability: null, veteran: null, recovery: null, needs: [], contact: "", notes: "" };
+  S.plan = null; navigate("help");
+}
+const stepsFor = a => { const l = ["household"]; if (a.someone) l.push("registrant"); l.push("name", "sleep", "sleepDetails", "danger", "documents", "income", "health", "needs", "contact"); return l; };
+const sk = (a, key) => t(a.someone ? key + "Someone" : key) === key + "Someone" ? t(key) : t(a.someone ? key + "Someone" : key);
+ROUTES.help = () => {
+  const a = S.intake; if (!a) return ROUTES.home();
+  if (S.plan) return planView();
+  const steps = stepsFor(a), step = steps[a.idx], total = steps.length;
+  let body = "";
+  if (step === "household") body = `<h1>${sk(a, "qHousehold")}</h1><p class="hint">${t("qHouseholdHint")}</p><div class="bigchoice"><button class="${a.household === "single" ? "primary" : ""}" data-set="household" data-val="single"><div class="icon">🙋</div><div class="title">${sk(a, "hhSingle")}</div><div class="sub">${t("hhSingleSub")}</div></button><button class="${a.household === "family" ? "primary" : ""}" data-set="household" data-val="family"><div class="icon">👨‍👩‍👧</div><div class="title">${sk(a, "hhFamily")}</div><div class="sub">${t("hhFamilySub")}</div></button></div>`;
+  if (step === "registrant") body = `<h1>${t("qRegistrant")}</h1><p class="hint">${t("qRegistrantHint")}</p><label class="field" for="f-regname">${t("yourName")}</label><input type="text" id="f-regname" data-input="registrantName" value="${esc(a.registrantName)}"><label class="field">${t("relationship")}</label>${chips("registrantRel", ["friend","neighbor","family","caseworker","volunteer","other"].map(r => [r, t("rel_" + r)]), a.registrantRel)}`;
+  if (step === "name") body = `<h1>${sk(a, "qName")}</h1><p class="hint">${t("qNameHint")}</p><input type="text" id="f-name" data-input="name" value="${esc(a.name)}" autocomplete="off"><p class="note"><span aria-hidden="true">🔒</span><span>${t("privacyNote")}</span></p>`;
+  if (step === "sleep") body = `<h1>${sk(a, "qSleep")}</h1>${yesno("hasSleep", a.hasSleep)}`;
+  if (step === "sleepDetails") body = `${a.hasSleep === false ? `<div class="card warm"><h3>${t("urgentTitle")}</h3><p class="small">${a.someone ? t("urgentBodySomeone") : t("urgentBody")}</p></div>` : ""}<h2 style="margin-top:8px">${sk(a, "qArea")}</h2><p class="hint">${t("qAreaHint")}</p><select id="f-area" data-input="area"><option value="">—</option>${AREAS.map(x => `<option ${a.area === x ? "selected" : ""}>${x}</option>`).join("")}</select><label class="field" for="f-landmark">${t("qLandmark")} <span class="muted small">(${t("optional")})</span></label><input type="text" id="f-landmark" data-input="landmark" placeholder="${t("qLandmarkHint")}" value="${esc(a.landmark)}"><label class="field">${sk(a, "qHomelessDuration")}</label>${chips("duration", ["first","months","year","repeat"].map(d => [d, t("hd_" + d)]), a.duration)}`;
+  if (step === "danger") body = `<h1>${sk(a, "qDanger")}</h1><p class="hint">${t("qDangerHint")}</p>${yesno("inDanger", a.inDanger, true)}${a.inDanger ? `<div class="card warm" style="margin-top:14px"><strong>${t("dangerNow")}</strong><p class="small" style="margin:4px 0 8px">${t("dangerBody")}</p><a class="btn accent" href="tel:18007997233">📞 1-800-799-7233</a></div>` : ""}`;
+  if (step === "documents") body = `<h1>${sk(a, "qDocuments")}</h1><p class="hint">${t("qDocumentsHint")}</p><label class="field">${sk(a, "qId")}</label>${yesno("hasId", a.hasId)}<label class="field">${sk(a, "qSsn")}</label>${yesno("hasSsn", a.hasSsn)}<label class="field">${t("qBirthCert")}</label>${yesno("hasBirthCert", a.hasBirthCert)}<label class="field">${sk(a, "qPhone")}</label>${yesno("hasPhone", a.hasPhone)}`;
+  if (step === "income") body = `<h1>${t("qIncome")}</h1><p class="hint">${t("qIncomeHint")}</p>${chips("income", ["none","job","ssi","other"].map(i => [i, t("inc_" + i)]), a.income)}<label class="field">${t("qSnap")}</label>${yesno("hasSnap", a.hasSnap)}<label class="field">${t("qMedicaid")}</label>${yesno("hasMedicaid", a.hasMedicaid)}`;
+  if (step === "health") body = `<h1>${t("qHealth")}</h1><p class="hint">${t("qHealthHint")}</p><label class="field">${t("qDisability")}</label>${yesno("disability", a.disability, true)}<label class="field">${t("qVeteran")}</label>${yesno("veteran", a.veteran)}<label class="field">${sk(a, "qRecovery")}</label>${yesno("recovery", a.recovery, true)}`;
+  if (step === "needs") body = `<h1>${sk(a, "qNeeds")}</h1><p class="hint">${t("qNeedsHintPre")}</p>${chips("needs", NEEDS.map(n => [n, t("need_" + n), NEED_ICONS[n]]), a.needs, true)}`;
+  if (step === "contact") body = `<h1>${sk(a, "qContact")}</h1><p class="hint">${t("qContactHint")}</p><input type="text" id="f-contact" inputmode="tel" data-input="contact" value="${esc(a.contact)}"><label class="field" for="f-notes">${t("qNotes")} <span class="muted small">(${t("optional")})</span></label><textarea id="f-notes" data-input="notes">${esc(a.notes)}</textarea><p class="note"><span aria-hidden="true">🔒</span><span>${t("privacyNote")}</span></p>`;
+  const canNext = { household: a.household !== null, registrant: a.registrantRel !== "", sleep: a.hasSleep !== null, sleepDetails: a.area !== "", documents: a.hasId !== null && a.hasPhone !== null, needs: a.needs.length > 0 }[step] ?? true;
+  return `${progress(a.idx + 1, total)}${body}<div class="stepnav"><button class="btn ghost" id="f-back" ${a.idx === 0 ? "disabled" : ""}>← ${t("back")}</button>${step !== "contact" ? `<button class="btn" id="f-next" ${canNext ? "" : "disabled"}>${t("next")} →</button>` : `<button class="btn accent" id="f-submit">${t("submit")}</button>`}</div>`;
+};
+function suggestedNeeds(a) { const n = new Set(a.needs); if (a.hasSleep === false) n.add("housing"); if (a.hasId === false) n.add("id"); if (a.hasSsn === false) n.add("ssn"); if (a.hasBirthCert === false) n.add("documents"); if (a.hasPhone === false) n.add("phone"); if (a.hasSnap === false || a.income === "none") n.add("benefits"); if (a.hasMedicaid === false) n.add("healthcare"); if (a.disability) n.add("disability"); if (a.recovery) n.add("addiction"); if (a.income === "none" || a.income === "other") n.add("job"); return [...n]; }
+AFTER.help = () => {
+  const a = S.intake; if (!a || S.plan) { if (S.plan) wirePlan(); return; }
+  const steps = stepsFor(a), step = steps[a.idx];
+  view.querySelectorAll("[data-set]").forEach(b => b.onclick = () => {
+    const k = b.dataset.set, raw = b.dataset.val, v = raw === "true" ? true : raw === "false" ? false : raw === "null" ? null : raw;
+    if (b.dataset.multi) { a[k] = a[k].includes(v) ? a[k].filter(x => x !== v) : [...a[k], v]; } else a[k] = v;
+    render();
+  });
+  view.querySelectorAll("[data-input]").forEach(i => i.oninput = () => { a[i.dataset.input] = i.value; if (i.tagName === "SELECT") render(); });
+  $("#f-back").onclick = () => { a.idx = Math.max(0, a.idx - 1); render(); window.scrollTo({top:0}); };
+  const nx = $("#f-next"); if (nx) nx.onclick = () => { if (step === "health") a.needs = suggestedNeeds(a); a.idx = Math.min(steps.length - 1, a.idx + 1); render(); window.scrollTo({top:0}); };
+  const sb = $("#f-submit"); if (sb) sb.onclick = () => { S.plan = { id: "HH-" + hex6(), claimed: !!S.user }; render(); window.scrollTo({top:0}); };
+  const nm = $("#f-name"); if (nm) nm.focus();
+};
+function planView() {
+  const a = S.intake, p = S.plan;
+  const sections = []; if (a.inDanger) sections.push("safety"); if (a.household === "family") sections.push("family"); if (a.veteran) sections.push("veterans"); sections.push(...a.needs);
+  const by = n => RESOURCES.filter(r => r.need === n);
+  const wantsDocs = a.needs.some(n => ["id","ssn","documents","benefits","disability","healthcare"].includes(n));
+  return `<h1>${a.someone && a.name ? t("planTitleSomeone", {name: esc(a.name)}) : t("planTitle")}</h1><p class="muted">${t("planIntro")}</p>
+  <div class="card soft"><div class="small muted">${t("yourNumber")}</div><div class="casenum">${p.id}</div><div class="hint">${t("showThis")}</div></div>
+  ${(() => { const s = []; if (a.hasSleep === false) s.push("st_outreach"); if (a.needs.includes("ssn") || a.hasSsn === false) s.push("st_ss5"); if (a.needs.includes("documents") || a.hasBirthCert === false) s.push("st_birth"); if (a.needs.includes("id") || a.hasId === false) s.push("st_flid"); if (a.needs.some(n => ["benefits","healthcare","food"].includes(n))) s.push("st_access"); if (a.needs.includes("job")) s.push("st_jobs"); if (a.needs.includes("phone")) s.push("st_phone"); return s.length ? `<div class="card" style="border-color:var(--brand)"><h3>✅ ${t("startsToday")}</h3><p class="small muted" style="margin:0 0 8px">${t("startsTodaySub")}</p>${s.map(k => `<div class="row nowrap" style="gap:8px;padding:6px 0;border-top:1px solid var(--line);align-items:flex-start"><span style="color:var(--brand-dark);font-weight:800">✓</span><span class="small">${t(k)}</span></div>`).join("")}</div>` : ""; })()}
+  ${a.hasSleep === false ? `<div class="card warm"><h3>${t("urgentTitle")}</h3><p class="small">${a.someone ? t("urgentBodySomeone") : t("urgentBody")}</p><p class="small" style="color:var(--brand-dark);font-weight:700;margin:0">✅ ${t("outreachRequested")}</p><p class="small muted" style="margin:6px 0 0">↪ ${t("referralNote")}</p></div>` : ""}
+  ${!a.someone && !p.claimed ? `<div class="card soft"><h3>📬 ${t("getUpdatesTitle")}</h3><p class="small">${t("getUpdatesBody")}</p>${pinLogin(true)}</div>` : ""}
+  ${!a.someone && p.claimed ? `<div class="card soft"><strong>📬 ${t("updatesOn")}</strong><p class="small muted" style="margin:4px 0 0">${t("updatesOnBody")}</p></div>` : ""}
+  ${wantsDocs ? `<div class="card soft"><h3>🪪 ${t("docsTitle")}</h3><p class="small">${t("docsPlanCard")}</p><button class="btn block" data-go="docs">${t("docsStart")}</button></div>` : ""}
+  <div class="card"><h3>${t("findHelper")}</h3><p class="small muted">${t("findHelperSub")}</p><button class="btn block" id="p-helper">📍 ${t("findHelper")}</button></div>
+  ${sections.map(n => `<div class="card"><h2 style="margin-top:0">${NEED_ICONS[n]} ${t("need_" + n)}</h2>${(n === "food" || n === "clothes") ? `<div class="card soft" style="margin-bottom:12px"><strong>${t("foodClothesNow")}</strong><p class="small muted" style="margin:4px 0 10px">${t("foodClothesNowSub")}</p><button class="btn secondary" data-go="kioskOrder">🥫 ${t("requestPickup")}</button></div>` : ""}${n === "job" ? `<button class="btn secondary" data-go="jobs" style="margin-bottom:12px">💼 ${t("seeJobs")}</button>` : ""}${by(n).map(resourceCard).join("") || `<p class="small muted">Call 211.</p>`}</div>`).join("")}
+  <div class="card"><h2 style="margin-top:0">☎️ 24/7</h2>${by("general").map(resourceCard).join("")}</div>
+  <div class="row" style="margin-top:20px"><button class="btn ghost" data-go="home">${t("startOver")}</button></div><p class="emergency">${t("emergency")}</p>`;
+}
+function wirePlan() {
+  if ($("#pin-go")) wirePin(() => { S.plan.claimed = true; render(); });
+  const h = $("#p-helper"); if (h) h.onclick = () => { h.textContent = "✅ Request saved — a helper in North Miami will be matched"; h.disabled = true; };
+}
+
+// ---------- Document Center ----------
+const DOC_STEPS = ["which","about","parents","ssn","have","reach","consent"];
+function newDoc() { return { idx: 0, wants: [], first: S.user?.name === "james" ? "James" : "", middle: "", last: "", other: "", dob: "", sex: "", city: "", state: "FL", country: "USA", mother: "", motherMaiden: "", father: "", ssnKnown: null, last4: "", citizen: null, hasPhotoId: null, hasBirthCert: null, hasSsnCard: null, otherDoc: "", photos: [], phone: "", reach: "app", mail: false, rep: false, truth: false, sigName: "", sig: null }; }
+ROUTES.docs = () => {
+  if (!S.user) return `<h1>${t("docsTitle")}</h1><p class="muted">${t("docsIntro")}</p><p class="small">${t("docsSignIn")}</p>${pinLogin(false)}`;
+  if (S.docCase) return docStatusView(S.docCase);
+  if (!S.doc) S.doc = newDoc();
+  const d = S.doc, step = DOC_STEPS[d.idx], n = DOC_STEPS.length;
+  let body = "";
+  if (step === "which") body = `<h1>${t("docsWhich")}</h1><p class="hint">${t("docsWhichSub")}</p><div class="bigchoice">${DOC_TYPES.map(x => `<button class="${d.wants.includes(x) ? "primary" : ""}" data-set="wants" data-val="${x}" data-multi="1"><div class="icon">${DOC_ICONS[x]}</div><div class="title">${t("doc_" + x)}</div><div class="sub">${t("doc_" + x + "_sub")}</div></button>`).join("")}</div>`;
+  if (step === "about") body = `<h1>${t("docsAbout")}</h1><p class="hint">${t("docsAboutSub")}</p><label class="field" for="d-first">${t("legalFirst")}</label><input type="text" id="d-first" data-input="first" value="${esc(d.first)}"><label class="field" for="d-middle">${t("legalMiddle")} <span class="muted">(${t("optional")})</span></label><input type="text" id="d-middle" data-input="middle" value="${esc(d.middle)}"><label class="field" for="d-last">${t("legalLast")}</label><input type="text" id="d-last" data-input="last" value="${esc(d.last)}"><label class="field" for="d-other">${t("otherNames")} <span class="muted">(${t("optional")})</span></label><input type="text" id="d-other" data-input="other" value="${esc(d.other)}"><label class="field" for="d-dob">${t("dob")}</label><input type="date" id="d-dob" data-input="dob" value="${d.dob}"><label class="field">${t("sex")}</label>${chips("sex", [["male", t("sex_male")],["female", t("sex_female")],["x", t("sex_x")]], d.sex)}<label class="field">${t("birthPlace")}</label><input type="text" data-input="city" placeholder="${t("birthCity")}" aria-label="${t("birthCity")}" value="${esc(d.city)}"><div class="row nowrap"><input type="text" data-input="state" placeholder="${t("birthState")}" aria-label="${t("birthState")}" value="${esc(d.state)}"><input type="text" data-input="country" placeholder="${t("birthCountry")}" aria-label="${t("birthCountry")}" value="${esc(d.country)}"></div><p class="note"><span aria-hidden="true">🔒</span><span>${t("privacyNote")}</span></p>`;
+  if (step === "parents") body = `<h1>${t("docsParents")}</h1><p class="hint">${t("docsParentsSub")}</p><label class="field" for="d-mother">${t("motherName")}</label><input type="text" id="d-mother" data-input="mother" value="${esc(d.mother)}"><label class="field" for="d-maiden">${t("motherMaiden")}</label><input type="text" id="d-maiden" data-input="motherMaiden" value="${esc(d.motherMaiden)}"><label class="field" for="d-father">${t("fatherName")}</label><input type="text" id="d-father" data-input="father" value="${esc(d.father)}">`;
+  if (step === "ssn") body = `<h1>${t("docsSsn")}</h1><label class="field">${t("ssnKnown")}</label>${yesno("ssnKnown", d.ssnKnown)}${d.ssnKnown ? `<label class="field" for="d-last4">${t("ssnLast4")}</label><input type="text" id="d-last4" inputmode="numeric" maxlength="4" data-input="last4" value="${esc(d.last4)}" style="max-width:160px"><p class="hint">${t("ssnFullLater")}</p>` : ""}<label class="field">${t("usCitizen")}</label>${yesno("citizen", d.citizen)}`;
+  if (step === "have") body = `<h1>${t("docsHave")}</h1><p class="hint">${t("docsHaveSub")}</p><label class="field">${t("havePhotoId")}</label>${yesno("hasPhotoId", d.hasPhotoId)}<label class="field">${t("haveBirthCert")}</label>${yesno("hasBirthCert", d.hasBirthCert)}<label class="field">${t("haveSsnCard")}</label>${yesno("hasSsnCard", d.hasSsnCard)}<label class="field" for="d-otherdoc">${t("haveOther")}</label><input type="text" id="d-otherdoc" data-input="otherDoc" value="${esc(d.otherDoc)}"><div class="card" style="margin-top:16px"><h3 style="margin-top:0">📷 ${t("photos")}</h3>${d.photos.length ? `<div class="row" style="margin-bottom:10px">${d.photos.map(p => `<img class="photo-thumb" src="${p.src}" alt="${esc(p.label || "photo")}">`).join("")}</div>` : ""}<label class="btn secondary block" style="cursor:pointer;position:relative">📷 ${t("addPhoto")}<input type="file" id="d-photo" accept="image/*" capture="environment" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%"></label><label class="field" for="d-plabel" style="margin-top:12px">${t("photoLabelShort")}</label><input type="text" id="d-plabel" placeholder="${t("haveOther")}"></div>`;
+  if (step === "reach") body = `<h1>${t("docsReach")}</h1><p class="hint">${t("docsReachSub")}</p><label class="field" for="d-phone">${t("phoneOptional")}</label><input type="tel" id="d-phone" data-input="phone" value="${esc(d.phone)}"><label class="field">${t("bestWay")}</label>${chips("reach", [["app", t("reach_app")],["helper", t("reach_helper")],["phone", t("reach_phone")]], d.reach)}<label class="field">${t("pickupKiosk")}</label><p class="hint" style="margin-top:0">${t("pickupKioskSub")}</p><div class="bigchoice"><button class="primary"><div class="title" style="font-size:19px">📍 ${KIOSK.name}</div><div class="sub" style="font-size:14px">${KIOSK.address}</div></button></div>`;
+  if (step === "consent") body = `<h1>${t("docsConsent")}</h1><p class="hint">${t("docsConsentSub")}</p><label class="check"><input type="checkbox" id="c-mail" ${d.mail ? "checked" : ""}><span>${t("consentMail")}</span></label><label class="check"><input type="checkbox" id="c-rep" ${d.rep ? "checked" : ""}><span>${t("consentRep")}</span></label><label class="check"><input type="checkbox" id="c-truth" ${d.truth ? "checked" : ""}><span>${t("consentTruth")}</span></label><label class="field" for="d-signame">${t("typedName")}</label><input type="text" id="d-signame" data-input="sigName" placeholder="${esc([d.first, d.middle, d.last].filter(Boolean).join(" "))}" value="${esc(d.sigName)}"><label class="field">${t("signHere")}</label><div class="sigpad"><canvas id="sig" width="640" height="320"></canvas><div class="sigpad-hint" id="sig-hint" ${d.sig ? "hidden" : ""}>✍️ ${t("signHere")}</div><button class="btn ghost small sigpad-clear" id="sig-clear">${t("clearSig")}</button></div><p class="note"><span aria-hidden="true">🔒</span><span>${t("privacyNote")}</span></p>`;
+  const canNext = step === "which" ? d.wants.length > 0 : step === "about" ? !!(d.first.trim() && d.last.trim() && d.dob) : true;
+  const canSubmit = d.mail && d.rep && d.truth && d.sigName.trim() && d.sig;
+  return `${progress(d.idx + 1, n, t("docsTitle"))}${body}<div class="stepnav">${d.idx > 0 ? `<button class="btn ghost" id="d-back">← ${t("back")}</button>` : "<span></span>"}${step === "consent" ? `<button class="btn lg" id="d-submit" ${canSubmit ? "" : "disabled"}>${t("docsSubmit")} →</button>` : `<button class="btn lg" id="d-next" ${canNext ? "" : "disabled"}>${t("next")} →</button>`}</div>`;
+};
+AFTER.docs = () => {
+  if (!S.user) { wirePin(() => render()); return; }
+  if (S.docCase) { wireDocStatus(); return; }
+  const d = S.doc;
+  view.querySelectorAll("[data-set]").forEach(b => b.onclick = () => { const k = b.dataset.set, raw = b.dataset.val, v = raw === "true" ? true : raw === "false" ? false : raw === "null" ? null : raw; if (b.dataset.multi) d[k] = d[k].includes(v) ? d[k].filter(x => x !== v) : [...d[k], v]; else d[k] = v; render(); });
+  view.querySelectorAll("[data-input]").forEach(i => i.oninput = () => { d[i.dataset.input] = i.value; if (i.id === "d-signame") { const b = $("#d-submit"); if (b) b.disabled = !(d.mail && d.rep && d.truth && d.sigName.trim() && d.sig); } });
+  const bk = $("#d-back"); if (bk) bk.onclick = () => { d.idx--; render(); };
+  const nx = $("#d-next"); if (nx) nx.onclick = () => { d.idx++; render(); };
+  const ph = $("#d-photo"); if (ph) ph.onchange = () => { const f = ph.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { d.photos.push({ src: r.result, label: $("#d-plabel").value }); render(); }; r.readAsDataURL(f); };
+  ["mail","rep","truth"].forEach(k => { const c = $("#c-" + k); if (c) c.onchange = () => { d[k] = c.checked; const b = $("#d-submit"); if (b) b.disabled = !(d.mail && d.rep && d.truth && d.sigName.trim() && d.sig); }; });
+  const sig = $("#sig"); if (sig) wireSig(sig, d);
+  const sb = $("#d-submit"); if (sb) sb.onclick = () => {
+    S.docCase = { id: hex6(), first: d.first, middle: d.middle, last: d.last, dob: d.dob, signedAt: new Date().toISOString(), signatureName: d.sigName, sig: d.sig, photos: d.photos.map(p => p.label || "Photo"), navigator: null, area: "North Miami",
+      steps: d.wants.map(w => ({ doc: w, status: "ready" })) };
+    S.inbox.unshift({ from: "Helping Hand", when: "Just now", unread: true, subject: "Your document packet was sent to a navigator", body: `Case DC-${S.docCase.id}. We will message you here every time something changes.` });
+    S.doc = null; render(); window.scrollTo({top:0});
+  };
+};
+function wireSig(canvas, d) {
+  const ctx = canvas.getContext("2d"); ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#1d2b23";
+  if (d.sig) { const im = new Image(); im.onload = () => ctx.drawImage(im, 0, 0); im.src = d.sig; }
+  let drawing = false, last = null;
+  const pos = e => { const r = canvas.getBoundingClientRect(); const p = e.touches ? e.touches[0] : e; return { x: (p.clientX - r.left) * canvas.width / r.width, y: (p.clientY - r.top) * canvas.height / r.height }; };
+  const start = e => { drawing = true; last = pos(e); $("#sig-hint").hidden = true; e.preventDefault(); };
+  const move = e => { if (!drawing) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke(); last = p; e.preventDefault(); };
+  const end = () => { if (!drawing) return; drawing = false; d.sig = canvas.toDataURL("image/png"); const b = $("#d-submit"); if (b) b.disabled = !(d.mail && d.rep && d.truth && d.sigName.trim() && d.sig); };
+  canvas.addEventListener("pointerdown", start); canvas.addEventListener("pointermove", move); canvas.addEventListener("pointerup", end); canvas.addEventListener("pointerleave", end);
+  $("#sig-clear").onclick = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); d.sig = null; $("#sig-hint").hidden = false; const b = $("#d-submit"); if (b) b.disabled = true; };
+}
+const pct = s => { const i = STATUS_ORDER.indexOf(s); return i < 0 ? 0 : Math.round(((i + 1) / STATUS_ORDER.length) * 100); };
+function docSteps(c, compact) {
+  return `<div class="docsteps">${c.steps.map(s => { const ready = s.status === "at_kiosk"; return `<div class="card ${ready ? "soft" : ""} ${s.status === "issue" ? "warm" : ""}"><div class="row between nowrap"><div><div class="small muted">${DOC_ICONS[s.doc]} ${t("doc_" + s.doc)}</div><div style="font-size:${compact ? 18 : 20}px;font-weight:800">${t("st_" + s.status)}</div></div><span class="tag ${s.status === "picked_up" ? "gray" : ready ? "warm" : ""}">${pct(s.status)}%</span></div>${s.status !== "issue" ? `<div class="progress" style="margin:10px 0 6px"><div style="width:${pct(s.status)}%"></div></div>` : ""}${ready ? `<div class="pickup-box"><div class="small muted">${t("pickupCode")}</div><div class="pickup-code">${s.code}</div><div class="small">${t("pickupAt")}: <strong>${KIOSK.name}</strong> · ${KIOSK.address}</div></div>` : ""}${s.status === "appointment" && s.appointment ? `<p class="small" style="margin:6px 0 0">📅 ${t("appointmentAt")}: <strong>${fmtDT(s.appointment)}</strong> · ${KIOSK.name}</p><button class="btn secondary small" style="margin-top:8px">🚗 ${t("rideRequest")}</button>` : ""}${s.detail ? `<p class="small muted" style="margin:6px 0 0">${esc(s.detail)}</p>` : ""}</div>`; }).join("")}</div>`;
+}
+function docStatusView(c) {
+  return `<h1>${t("docsStatusTitle")}</h1><p class="muted">${t("docsStatusIntro")}</p><div class="card soft"><div class="small muted">${t("docsCaseNumber")}</div><div class="casenum">DC-${c.id}</div><div class="hint">${t("showThis")}</div></div>${docSteps(c)}<div class="card" style="margin-top:12px"><h3>📷 ${t("photos")}</h3>${c.photos.length ? c.photos.map(p => `<span class="tag">📎 ${esc(p)}</span>`).join("") : `<p class="small muted" style="margin:0">—</p>`}</div><div class="row" style="margin-top:16px"><button class="btn ghost" id="doc-reset">${t("signOut")}</button></div>`;
+}
+function wireDocStatus() { const r = $("#doc-reset"); if (r) r.onclick = () => { S.user = null; S.docCase = null; navigate("home"); }; }
+
+// ---------- Navigator desk ----------
+const allCases = () => [...(S.docCase ? [{ ...S.docCase, live: true }] : []), ...DEMO_CASES];
+ROUTES.navigator = () => {
+  if (!S.user || S.user.role !== "admin") return `<h1>${t("navTitle")}</h1><p class="muted">For Helping Hand navigators (helpers, drivers and admins).</p><p class="small muted">Demo: sign in as <strong>char</strong> with any PIN.</p>${pinLogin(true)}`;
+  if (S.navCase) return packetView(allCases().find(c => c.id === S.navCase));
+  const f = S.navFilter || "open";
+  const needsAction = c => c.steps.some(s => ["ready","issue","at_warehouse","collecting"].includes(s.status));
+  const atKiosk = c => c.steps.some(s => s.status === "at_kiosk");
+  const shown = allCases().filter(c => f === "open" ? needsAction(c) : f === "kiosk" ? atKiosk(c) : true);
+  return `<h1>${t("navTitle")}</h1><p class="muted">${t("navIntro")}</p><div class="chips" style="grid-template-columns:repeat(3,1fr)">${["open","kiosk","all"].map(x => `<button class="${f === x ? "sel" : ""}" data-filter="${x}">${t(x === "open" ? "navFilterOpen" : x === "kiosk" ? "navFilterKiosk" : "navFilterAll")}</button>`).join("")}</div>
+  ${shown.map(c => `<div class="card" style="margin-top:14px"><div class="row between nowrap"><div><div class="small muted">DC-${c.id} · ${t("navSubmittedOn")} ${fmtDate(c.signedAt)}</div><div style="font-size:20px;font-weight:800">${c.live ? "" : "DEMO "}${esc([c.first, c.last].join(" "))} ${c.live ? "" : demoBadge()}</div><div class="small muted">📍 ${KIOSK.name} · ${c.navigator ? (c.navigator === "char" ? "🙋 you" : c.navigator) : t("navUnassigned")}</div></div><button class="btn" data-open="${c.id}">${t("navOpen")}</button></div><div style="margin-top:8px">${c.steps.map(s => `<span class="tag ${s.status === "at_kiosk" ? "warm" : s.status === "picked_up" ? "gray" : ""}">${DOC_ICONS[s.doc]} ${t("doc_" + s.doc)}: ${t("st_" + s.status)}</span>`).join("")}</div></div>`).join("")}`;
+};
+AFTER.navigator = () => {
+  if (!S.user || S.user.role !== "admin") { if ($("#pin-go")) { $("#pin-user").value = "char"; wirePin(() => render()); } return; }
+  view.querySelectorAll("[data-filter]").forEach(b => b.onclick = () => { S.navFilter = b.dataset.filter; render(); });
+  view.querySelectorAll("[data-open]").forEach(b => b.onclick = () => { S.navCase = b.dataset.open; render(); window.scrollTo({top:0}); });
+  const back = $("#nav-back"); if (back) back.onclick = () => { S.navCase = null; render(); };
+  view.querySelectorAll("[data-status]").forEach(sel => sel.onchange = () => { const c = allCases().find(x => x.id === S.navCase); const st = c.steps.find(s => s.doc === sel.dataset.status); st.status = sel.value; if (sel.value === "at_kiosk" && !st.code) st.code = mkCode(); S.inbox.unshift({ from: "Navigator (Charlotte)", when: "Just now", unread: true, subject: `${t("doc_" + st.doc)}: ${t("st_" + st.status)}`, body: st.code && st.status === "at_kiosk" ? `Pickup code ${st.code} at ${KIOSK.name}.` : "Your navigator updated this document." }); render(); const toast = $("#nav-toast"); if (toast) toast.hidden = false; });
+  view.querySelectorAll("[data-form]").forEach(b => b.onclick = () => { b.textContent = "✅ PDF ready (opens in the real app)"; b.disabled = true; });
+  const asg = $("#nav-assign"); if (asg) asg.onclick = () => { allCases().find(x => x.id === S.navCase).navigator = "char"; render(); };
+};
+const row = (k, v) => `<div class="prow"><span>${k}</span><strong>${esc(v || "—")}</strong></div>`;
+const yn = b => b === true ? "Yes" : b === false ? "No" : "—";
+function packetView(c) {
+  if (!c) { S.navCase = null; return ROUTES.navigator(); }
+  const name = [c.first, c.middle, c.last].filter(Boolean).join(" ");
+  const wants = c.steps.map(s => s.doc);
+  const FORMS = { ssn_card: ["ss5", t("navFormSs5")], birth_cert: ["dh726", t("navFormBirth")], fl_id: ["letter", t("navFormId")], benefits: ["cfes2337", t("navFormAccess")] };
+  return `<div class="row between"><button class="btn ghost small" id="nav-back">← ${t("navQueue")}</button><div class="row">${c.navigator !== "char" ? `<button class="btn secondary small" id="nav-assign">Assign to me</button>` : ""}<button class="btn small" onclick="window.print()">🖨 ${t("navPrint")}</button></div></div>
+  <h1 style="margin-bottom:0">${c.live ? "" : "DEMO "}${esc(name)} ${c.live ? "" : demoBadge()}</h1><p class="muted" style="margin-top:4px">DC-${c.id} · ${t("navSubmittedOn")} ${fmtDT(c.signedAt)} · ${t("navAssigned")}: ${c.navigator === "char" ? "you" : c.navigator || t("navUnassigned")}${c.intake ? ` · ${t("navHousehold")}: ${c.intake}` : ""}</p>
+  <div>${wants.map(d => `<span class="tag">${DOC_ICONS[d]} ${t("doc_" + d)}</span>`).join("")}</div>
+  <p id="nav-toast" class="small" style="color:var(--brand-dark);font-weight:700" hidden>✅ ${t("navSaved")}</p>
+  <h2>${t("navSetStatus")}</h2>
+  ${c.steps.map(s => `<div class="card"><div style="font-weight:800;font-size:18px">${DOC_ICONS[s.doc]} ${t("doc_" + s.doc)}</div><select data-status="${s.doc}" aria-label="${t("navSetStatus")}">${[...STATUS_ORDER, "issue"].map(x => `<option value="${x}" ${s.status === x ? "selected" : ""}>${t("st_" + x)}</option>`).join("")}</select>${s.status === "at_kiosk" ? `<div class="row" style="margin-top:8px"><span class="small muted">${t("navKiosk")}: <strong>${KIOSK.name}</strong></span><span class="tag warm">${t("navCode")} ${s.code}</span></div>` : ""}${s.appointment ? `<p class="small muted" style="margin:6px 0 0">📅 ${fmtDT(s.appointment)}</p>` : ""}${s.detail ? `<p class="small muted" style="margin:6px 0 0">${esc(s.detail)}</p>` : ""}</div>`).join("")}
+  <h2>${t("navFilledForms")}</h2><p class="small muted">${t("navFilledFormsSub")}</p>
+  ${wants.map(d => `<button class="btn secondary block" style="justify-content:flex-start;text-align:left;margin-bottom:8px" data-form="${FORMS[d][0]}">📄 ${FORMS[d][1]}</button>`).join("")}
+  <h2>SS-5 · Application for a Social Security card</h2>
+  <div class="psheet">${row("1. Name to be shown on card", name)}${row("Name at birth (if different)", c.other)}${row("2. Social Security number", c.ssnKnown ? `•••-••-${c.ssnLast4}` : "Not known — SSA to locate")}${row("3. Place of birth", [c.birthCity, c.birthState, c.birthCountry].filter(Boolean).join(", "))}${row("4. Date of birth", c.dob ? fmtDate(c.dob + "T00:00:00") : "")}${row("5. Citizenship", c.citizen === false ? "Legal alien / other" : c.citizen ? "U.S. citizen" : "")}${row("8. Sex", c.sex ? t("sex_" + c.sex) : "")}${row("9. Mother's name at her birth", c.motherMaiden || c.mother)}${row("10. Father's name", c.father)}${row("16. Mailing address", "Helping Hand, c/o warehouse address, North Miami, FL 33161")}${row("17. Daytime phone", "410-553-1618 (Helping Hand)")}${row("Applicant signature", c.signatureName)}</div>
+  ${c.sig ? `<img class="sigimg" src="${c.sig}" alt="Signature">` : `<p class="small muted" style="margin-top:8px">✍️ ${t("navSigned")} ${fmtDT(c.signedAt)} (finger signature on file)</p>`}
+  <h2>${t("navLetter")}</h2>
+  <div class="psheet"><p class="small" style="margin:0 0 8px">To whom it may concern — Florida DHSMV / Tax Collector</p><p class="small" style="margin:0 0 8px">Helping Hand certifies that <strong>${esc(name)}</strong>, born ${c.dob ? fmtDate(c.dob + "T00:00:00") : "—"}, is experiencing homelessness in Miami-Dade County (${c.area || "North Miami"}${c.landmark ? ", " + esc(c.landmark) : ""}) and has no fixed address. Helping Hand receives mail on this person's behalf at the address above under a signed authorization dated ${fmtDate(c.signedAt)}. We request the fee exemption for a Florida identification card under s. 322.051(9), F.S.</p><p class="small" style="margin:0">Charlotte Barbrick, Founder · Helping Hand · 410-553-1618</p></div>
+  <h2>${t("navFiles")}</h2><div class="row">${c.photos.length ? c.photos.map(p => `<span class="tag">📎 ${esc(p)}</span>`).join("") : `<span class="small muted">—</span>`}</div>
+  <h2>Authorizations</h2><div class="row"><span class="tag">✅ Mail authorization — ${t("navSigned")}</span><span class="tag">✅ Representative authorization — ${t("navSigned")}</span></div>`;
+}
+
+// ---------- Kiosk ----------
+ROUTES.kiosk = () => {
+  const o = S.order;
+  if (S.kioskScreen === "code" && o) {
+    const mins = Math.max(0, 20 - Math.round((Date.now() - o.at) / 60000));
+    const idx = Math.min(3, Math.floor((Date.now() - o.at) / 8000)); // demo: advances every 8 seconds
+    return `<h1>${t("kioskCode")}</h1><div class="code">${o.code}</div><p style="margin-top:16px">${t("kioskArriving", {n: mins})}</p><p class="muted">${t("kioskShowCode")}</p><div class="status-steps">${["requested","packing","en_route","delivered"].map((s, i) => `<div class="${i <= idx ? "done" : ""}">${t("status_" + s)}</div>`).join("")}</div><div class="stepnav"><button class="btn ghost" id="k-home">← ${t("back")}</button></div>`;
+  }
+  if (S.kioskScreen === "status") return `<h1>${t("enterCode")}</h1><input type="text" id="k-lookup" autocapitalize="characters" maxlength="6" style="font-size:32px;letter-spacing:.2em;text-align:center" aria-label="${t("enterCode")}"><p class="error small" id="k-nf" hidden style="color:var(--danger);font-weight:600">${t("notFound")}</p><div class="stepnav"><button class="btn ghost" id="k-home">← ${t("back")}</button><button class="btn lg" id="k-check">${t("check")}</button></div>`;
+  if (S.kioskScreen === "inbox") return `<div class="row between"><h1>${t("inbox")}</h1>${S.user ? `<button class="btn secondary" id="k-done">${t("doneSignOut")}</button>` : ""}</div>${S.user ? `<p class="muted">${t("kioskInboxWarn")}</p>${inboxList()}` : `<p class="muted">${t("signInIntro")}</p>${pinLogin(true)}`}<div class="stepnav"><button class="btn ghost" id="k-home">← ${t("back")}</button></div>`;
+  if (S.kioskScreen === "docs") return `<div class="row between"><h1>${t("docsMine")}</h1>${S.user ? `<button class="btn secondary" id="k-done">${t("doneSignOut")}</button>` : ""}</div>${S.user ? `<p class="muted">${t("kioskInboxWarn")}</p>${docSteps(S.docCase || DEMO_CASES[0], true)}` : `<p class="muted">${t("docsIntro")}</p>${pinLogin(true)}`}<div class="stepnav"><button class="btn ghost" id="k-home">← ${t("back")}</button></div>`;
+  return `${langbarFull()}<h1>${t("kioskTitle")}</h1><p class="muted">${t("kioskQuestion")}</p><div class="bigchoice">
+    <button class="primary" data-go="kioskOrder"><div class="icon">🥫👕</div><div class="title">${t("kioskYes")}</div><div class="sub">${t("foodClothesNowSub")}</div></button>
+    <button class="accent" id="k-help"><div class="icon">🙋</div><div class="title">${t("kioskHelp")}</div><div class="sub">${t("helpingMyselfSub")}</div></button>
+    <button data-kscreen="docs"><div class="icon">🪪</div><div class="title">${t("docsHome")}</div><div class="sub">${t("docsHomeSub")}</div></button>
+    <button data-kscreen="inbox"><div class="icon">📬</div><div class="title">${t("kioskInbox")}</div><div class="sub">${t("kioskInboxSub")}</div></button>
+    <button data-kscreen="status"><div class="icon">🔎</div><div class="title">${t("kioskStatus")}</div></button>
+  </div><p class="emergency">${t("emergency")}</p>`;
+};
+AFTER.kiosk = () => {
+  view.querySelectorAll("[data-kscreen]").forEach(b => b.onclick = () => { S.kioskScreen = b.dataset.kscreen; render(); });
+  const h = $("#k-home"); if (h) h.onclick = () => { S.kioskScreen = "home"; render(); };
+  const kh = $("#k-help"); if (kh) kh.onclick = () => startIntake(false);
+  const kd = $("#k-done"); if (kd) kd.onclick = () => { S.user = null; S.kioskScreen = "home"; render(); };
+  if ($("#pin-go")) wirePin(() => render());
+  const ck = $("#k-check"); if (ck) ck.onclick = () => { const v = $("#k-lookup").value.trim().toUpperCase(); if (S.order && v === S.order.code) { S.kioskScreen = "code"; render(); } else if (v === "TQ917") { S.order = { code: "TQ917", at: Date.now() - 40000 }; S.kioskScreen = "code"; render(); } else $("#k-nf").hidden = false; };
+  if (S.kioskScreen === "code") { clearTimeout(S.kioskTimer); S.kioskTimer = setTimeout(() => { if (S.route === "kiosk" && S.kioskScreen === "code") render(); }, 8000); }
+  const lk = $("#k-lookup"); if (lk) lk.oninput = () => lk.value = lk.value.toUpperCase();
+};
+ROUTES.kioskOrder = () => {
+  const o = S.orderDraft || (S.orderDraft = { food: true, clothes: false, hygiene: false, top: "", bottom: "", shoes: "" });
+  return `<h1>${t("kioskQuestion")}</h1><div class="chips"><button class="${o.food ? "sel" : ""}" data-tog="food"><span class="icon">🥫</span>${t("kioskFood")}</button><button class="${o.clothes ? "sel" : ""}" data-tog="clothes"><span class="icon">👕</span>${t("kioskClothes")}</button><button class="${o.hygiene ? "sel" : ""}" data-tog="hygiene"><span class="icon">🧼</span>${t("kioskHygiene")}</button></div>
+  ${o.clothes ? `<div class="card" style="margin-top:14px"><label class="field">${t("sizeTop")}</label><div class="chips tight">${["S","M","L","XL","2XL","3XL"].map(s => `<button class="${o.top === s ? "sel" : ""}" data-size="top" data-val="${s}">${s}</button>`).join("")}</div><label class="field">${t("sizeBottom")}</label><div class="chips tight">${["28","30","32","34","36","38","40","42+"].map(s => `<button class="${o.bottom === s ? "sel" : ""}" data-size="bottom" data-val="${s}">${s}</button>`).join("")}</div><label class="field">${t("sizeShoes")}</label><div class="chips tight">${["6","7","8","9","10","11","12","13+"].map(s => `<button class="${o.shoes === s ? "sel" : ""}" data-size="shoes" data-val="${s}">${s}</button>`).join("")}</div></div>` : ""}
+  <div class="stepnav"><button class="btn ghost" data-go="kiosk">← ${t("back")}</button><button class="btn lg accent" id="k-order" ${(o.food || o.clothes || o.hygiene) ? "" : "disabled"}>${t("kioskPlace")} →</button></div>`;
+};
+AFTER.kioskOrder = () => {
+  const o = S.orderDraft;
+  view.querySelectorAll("[data-tog]").forEach(b => b.onclick = () => { o[b.dataset.tog] = !o[b.dataset.tog]; render(); });
+  view.querySelectorAll("[data-size]").forEach(b => b.onclick = () => { o[b.dataset.size] = b.dataset.val; render(); });
+  $("#k-order").onclick = () => { S.order = { code: mkCode(), at: Date.now(), items: { ...o } }; S.orderDraft = null; S.kioskScreen = "code"; navigate("kiosk"); };
+};
+
+// ---------- Inbox ----------
+function inboxList() { return S.inbox.length ? S.inbox.map((m, i) => `<div class="card msg ${m.unread ? "unread" : ""}" data-msg="${i}"><div class="row between nowrap"><strong>${esc(m.from)}</strong><span class="small muted">${esc(m.when)}</span></div><div style="font-weight:700;margin-top:4px">${esc(m.subject)}</div><p class="small muted" style="margin:6px 0 0">${esc(m.body)}</p></div>`).join("") : `<p class="muted">${t("inboxEmpty")}</p>`; }
+ROUTES.inbox = () => `<h1>${t("inbox")}</h1><p class="muted">${t("inboxIntro")}</p>${S.user ? `<p class="small muted">${t("signedInAs", {name: esc(S.user.name)})} · <button class="btn ghost small" id="ib-out">${t("signOut")}</button></p>${inboxList()}` : `<p class="small">${t("signInIntro")}</p>${pinLogin(false)}`}`;
+AFTER.inbox = () => { if ($("#pin-go")) wirePin(() => render()); view.querySelectorAll("[data-msg]").forEach(c => c.onclick = () => { S.inbox[+c.dataset.msg].unread = false; render(); }); const o = $("#ib-out"); if (o) o.onclick = () => { S.user = null; render(); }; };
+
+// ---------- Jobs: search + category chips, urgent / no-experience tags, one-tap apply ----------
+const TAG_LABEL = x => ({ noid: t("tagNoId"), noaddress: t("tagNoAddress"), sameday: t("tagSameDay"), urgent: t("tagUrgent"), noexp: t("tagNoExp") })[x];
+function jobMatches(j) {
+  const q = (S.jobQ || "").trim().toLowerCase();
+  const cat = JOB_CATS.find(c => c[0] === j.cat);
+  const hay = [j.title, j.company, j.area, j.shifts, cat ? cat[2] : "", j.cat, ...j.tags.map(TAG_LABEL)].join(" ").toLowerCase();
+  if (q && !q.split(/\s+/).every(w => hay.includes(w))) return false;
+  if (S.jobCat && S.jobCat !== "urgent" && j.cat !== S.jobCat) return false;
+  if (S.jobCat === "urgent" && !j.tags.includes("urgent")) return false;
+  return true;
+}
+ROUTES.jobs = () => {
+  const shown = DEMO_JOBS.map((j, i) => [j, i]).filter(([j]) => jobMatches(j));
+  return `<h1>${t("jobsTitle")}</h1><p class="muted">${t("jobsIntro")}</p>
+  <input type="text" id="job-q" placeholder="${t("jobsSearch")}" value="${esc(S.jobQ || "")}" aria-label="${t("jobsSearch")}" autocomplete="off" style="margin-top:0">
+  <div class="chips" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))"><button class="${!S.jobCat ? "sel" : ""}" data-cat="">${t("jobsAll")}</button><button class="${S.jobCat === "urgent" ? "sel" : ""}" data-cat="urgent">⚡ ${t("jobsUrgentOnly")}</button>${JOB_CATS.map(([k, icon, label]) => `<button class="${S.jobCat === k ? "sel" : ""}" data-cat="${k}">${icon} ${esc(label)}</button>`).join("")}</div>
+  <p class="small muted" style="margin:14px 0 8px">${t("jobsCount", {n: shown.length})}</p>
+  ${shown.length ? shown.map(([j, i]) => `<div class="card"><div class="row between nowrap"><div><h3 style="margin:0">${esc(j.title)}</h3><div class="small muted">${esc(j.company)} · ${esc(j.area)}</div></div><strong style="white-space:nowrap;color:var(--brand-dark)">${j.pay}</strong></div><div style="margin-top:6px">${j.tags.map(x => `<span class="tag ${x === "urgent" ? "warm" : ""}">${x === "urgent" ? "⚡ " : ""}${TAG_LABEL(x)}</span>`).join("")}</div><p class="small muted" style="margin:8px 0 10px">${esc(j.shifts)}</p>${S.applied.has(i) ? `<p class="small" style="color:var(--brand-dark);font-weight:700;margin:0">✅ ${t("applied")}</p>` : `<button class="btn small" data-apply="${i}">${t("apply")} →</button>`}</div>`).join("") : `<div class="card"><p class="muted" style="margin:0">${t("jobsNone")}</p></div>`}
+  <p class="hint">${t("jobsApplyNote")}</p>`;
+};
+AFTER.jobs = () => {
+  const q = $("#job-q"); q.oninput = () => { S.jobQ = q.value; const pos = q.selectionStart; render(); const nq = $("#job-q"); nq.focus(); nq.setSelectionRange(pos, pos); };
+  view.querySelectorAll("[data-cat]").forEach(b => b.onclick = () => { S.jobCat = b.dataset.cat; render(); });
+  view.querySelectorAll("[data-apply]").forEach(b => b.onclick = () => { const j = DEMO_JOBS[+b.dataset.apply]; S.applied.add(+b.dataset.apply); S.inbox.unshift({ from: j.company, when: "Just now", unread: true, subject: `${j.title}: can you start this week?`, body: `We got your application through Helping Hand. Come by any weekday morning, ask for the manager, and say Helping Hand sent you. ${j.tags.includes("noid") ? "No ID needed to start." : "Bring any ID you have; we can help with the rest."}` }); render(); });
+};
+
+// ---------- Admin / partner report ----------
+ROUTES.admin = () => `<h1>${t("adminTitle")}</h1><p class="muted">${t("adminIntro")}</p><div class="card soft"><div class="small muted">Period</div><strong>${REPORT.period}</strong></div><div class="card">${REPORT.rows.map(([k, v]) => `<div class="prow"><span>${k}</span><strong>${v}</strong></div>`).join("")}</div><div class="card"><h3>Resource map</h3><p class="small muted">${RESOURCES.length} entries across ${[...new Set(RESOURCES.map(r => r.need))].length} needs, every one a real Miami-Dade or federal service.</p><div>${[...new Set(RESOURCES.map(r => r.need))].map(n => `<span class="tag">${NEED_ICONS[n]} ${t("need_" + n)} · ${RESOURCES.filter(r => r.need === n).length}</span>`).join("")}</div></div><div class="card"><h3>Kiosks</h3><div class="prow"><span>${KIOSK.code}</span><strong>${KIOSK.name} — ${KIOSK.address}</strong></div></div>`;
+
+// ---------- Add-to-home-screen hint ----------
+(function a2hs() {
+  const ua = navigator.userAgent, ios = /iphone|ipad|ipod/i.test(ua), android = /android/i.test(ua);
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  let dismissed = false; try { dismissed = localStorage.getItem("hh-a2hs") === "1"; } catch {}
+  if ((ios || android) && !standalone && !dismissed) {
+    $("#a2hs-title").textContent = t("a2hsTitle"); $("#a2hs-body").textContent = ios ? t("a2hsIos") : t("a2hsAndroid");
+    setTimeout(() => { $("#a2hs").hidden = false; }, 6000);
+  }
+  $("#a2hs-x").onclick = () => { $("#a2hs").hidden = true; try { localStorage.setItem("hh-a2hs", "1"); } catch {} };
+})();
+
+paintLangbar();
+
+</script>
+</body>
+</html>

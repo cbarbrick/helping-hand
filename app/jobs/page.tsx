@@ -7,10 +7,27 @@ import { AREAS } from "@/lib/i18n";
 import { supabase, Job } from "@/lib/supabase";
 import { Skeleton } from "@/components/Skeleton";
 
+// Work that hires this week and needs no diploma. Matched against the posting's text so employers
+// do not have to pick a category when they post.
+const CATS: { key: string; icon: string; words: string[] }[] = [
+  { key: "kitchen", icon: "🍽️", words: ["dish", "kitchen", "cook", "prep", "restaurant", "porter", "busser", "line"] },
+  { key: "construction", icon: "🏗️", words: ["construction", "laborer", "labor", "site", "demolition", "roof", "concrete", "drywall"] },
+  { key: "cleaning", icon: "🧹", words: ["clean", "janitor", "custod", "housekeep", "porter", "crew"] },
+  { key: "cafeteria", icon: "🥪", words: ["cafeteria", "food service", "school", "hospital", "server", "counter"] },
+  { key: "warehouse", icon: "📦", words: ["warehouse", "packer", "pack", "mover", "moving", "loader", "stock", "event", "setup"] },
+  { key: "landscaping", icon: "🌿", words: ["landscap", "grounds", "lawn", "yard", "tree"] },
+  { key: "hotel", icon: "🛎️", words: ["hotel", "housekeep", "room attendant", "laundry", "valet"] },
+];
+const jobText = (j: Job) => [j.title, j.company, j.description, j.requirements, j.how_to_apply].filter(Boolean).join(" ").toLowerCase();
+const noExperience = (j: Job) => !j.requirements || /no experience|will train|no diploma|entry|no schooling|training provided/i.test(j.requirements);
+const thisWeek = (j: Job) => ["day_labor", "gig", "temp"].includes(j.job_type) || j.same_day_pay || /this week|today|tomorrow|immediately|urgent|start now|asap/i.test(jobText(j));
+
 export default function JobsPage() {
   const { t } = useLang();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [area, setArea] = useState("");
+  const [q, setQ] = useState("");
+  const [cat, setCat] = useState("");
   const [applying, setApplying] = useState<Job | null>(null);
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
@@ -52,6 +69,18 @@ export default function JobsPage() {
     setBusy(false);
   }
 
+  const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const shown = jobs.filter((j) => {
+    const text = jobText(j);
+    if (words.length && !words.every((w) => text.includes(w))) return false;
+    if (cat === "week") return thisWeek(j);
+    if (cat) {
+      const c = CATS.find((x) => x.key === cat);
+      return !!c && c.words.some((w) => text.includes(w));
+    }
+    return true;
+  });
+
   return (
     <main className="container">
       <div className="row between">
@@ -59,6 +88,18 @@ export default function JobsPage() {
         <Link className="btn secondary" href="/jobs/new">
           + {t("postJob")}
         </Link>
+      </div>
+      <p className="muted">{t("jobsIntro")}</p>
+      <label className="sr-only" htmlFor="job-q">{t("jobsSearch")}</label>
+      <input id="job-q" type="text" placeholder={t("jobsSearch")} value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" style={{ marginTop: 0 }} />
+      <div className="chips" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))" }}>
+        <button className={cat === "" ? "selected" : ""} onClick={() => setCat("")}>{t("jobsAll")}</button>
+        <button className={cat === "week" ? "selected" : ""} onClick={() => setCat("week")}>⚡ {t("jobsThisWeek")}</button>
+        {CATS.map((c) => (
+          <button key={c.key} className={cat === c.key ? "selected" : ""} onClick={() => setCat(c.key)}>
+            {c.icon} {t(`cat_${c.key}`)}
+          </button>
+        ))}
       </div>
       <label className="field" htmlFor="job-area">{t("areaLabel")}</label>
       <select id="job-area" value={area} onChange={(e) => setArea(e.target.value)}>
@@ -71,7 +112,8 @@ export default function JobsPage() {
       <div style={{ marginTop: 24 }}>
         {!loaded && <Skeleton cards={3} heading={false} />}
         {loaded && jobs.length === 0 && <div className="card">{t("noJobs")}</div>}
-        {jobs.map((j) => (
+        {loaded && jobs.length > 0 && shown.length === 0 && <div className="card">{t("jobsNone")}</div>}
+        {shown.map((j) => (
           <div className="card" key={j.id}>
             <div className="row between">
               <h3>{j.title}</h3>
@@ -81,6 +123,8 @@ export default function JobsPage() {
               {j.company} {j.area ? `· ${j.area}` : ""} · {t(`type_${j.job_type}`)}
             </div>
             <div>
+              {thisWeek(j) && <span className="tag warm">⚡ {t("tag_thisWeek")}</span>}
+              {noExperience(j) && <span className="tag">{t("tag_noExp")}</span>}
               {j.no_id_ok && <span className="tag">{t("tag_noId")}</span>}
               {j.no_address_ok && <span className="tag">{t("tag_noAddress")}</span>}
               {j.same_day_pay && <span className="tag">{t("tag_sameDay")}</span>}
